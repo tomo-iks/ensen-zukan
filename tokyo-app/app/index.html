@@ -13,7 +13,7 @@
   0%{transform:translate(var(--t0x,0px),var(--t0y,0px)) rotate(0deg) scale(var(--s0,.03));animation-timing-function:cubic-bezier(.5,.05,.25,1)}
   50%{transform:translate(var(--tAx,0px),var(--tAy,0px)) rotate(90deg) scale(var(--sA,1));animation-timing-function:cubic-bezier(.45,0,.2,1)}
   100%{transform:translate(var(--tBx,0px),var(--tBy,0px)) rotate(0deg) scale(var(--sB,1))}}
-#boot .jp path,#boot .bw{fill:#DCE7E2;stroke:#8FA29A;stroke-width:.9px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+#boot .jp path{fill:#DCE7E2;stroke:none}#boot .bw{fill:#DCE7E2;stroke:#8FA29A;stroke-width:var(--sw,.01px);stroke-linejoin:round}#boot:not(.go),#boot:not(.go) *{animation-play-state:paused!important}
 #boot .bw{opacity:0;animation:bwin .5s ease-out forwards}
 @keyframes bwin{to{opacity:1}}
 #boot .br{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:br .9s ease-in-out forwards}
@@ -26,7 +26,7 @@
 #boot h1{bottom:11vh;margin:0}
 #boot p{bottom:7vh}
 #boot.done{opacity:0!important;pointer-events:none;transition:opacity .35s}
-@media (prefers-color-scheme: dark){#boot .jp path,#boot .bw{fill:#22343A;stroke:#4E6870}#boot .bd{fill:#E6ECEE;stroke:#121619}}
+@media (prefers-color-scheme: dark){#boot .jp path,#boot .bw{fill:#22343A}#boot .bw{stroke:#4E6870}#boot .bd{fill:#E6ECEE;stroke:#121619}}
 @media (prefers-reduced-motion: reduce){#boot{animation-delay:.6s}#boot .cam{animation:none;transform:translate(var(--tBx,0px),var(--tBy,0px)) rotate(0deg) scale(var(--sB,1))}#boot .bw,#boot .bd{animation:none;opacity:1}#boot .br{animation:none;stroke-dashoffset:0}#boot h1,#boot p{animation:none;opacity:0}}
 #boot .bm{display:none}
 #boot .bm i{display:block;width:12px;border-radius:4px;animation:bootbar 1.2s ease-in-out infinite}
@@ -57,7 +57,7 @@
   sv.setAttribute('viewBox','0 0 '+vw+' '+vh);
   var s=b.style,px=function(v){return v+'px';};
   s.setProperty('--ox',px(O.x));s.setProperty('--oy',px(O.y));
-  s.setProperty('--s0',s0);s.setProperty('--sA',ppu);s.setProperty('--sB',sB);
+  s.setProperty('--s0',s0);s.setProperty('--sw',(1.3/ppu)+'px');s.setProperty('--sA',ppu);s.setProperty('--sB',sB);
   s.setProperty('--t0x',px(t0.x));s.setProperty('--t0y',px(t0.y));
   s.setProperty('--tAx',px(tA.x));s.setProperty('--tAy',px(tA.y));
   s.setProperty('--tBx',px(tB.x));s.setProperty('--tBy',px(tB.y));
@@ -70,14 +70,20 @@
 </script>
 <script>
 window.__bootErr=null;
+window.__goQ=[];
+window.__go=function(){var b=document.getElementById('boot');if(b)b.classList.add('go');var q=window.__goQ;window.__goQ=null;if(q)q.forEach(function(a){setTimeout(a[0],a[1]+6200);});};
+window.afterBoot=function(f,m){if(window.__goQ)window.__goQ.push([f,m||0]);else setTimeout(f,m||0);};
+setTimeout(window.__go,15000);
 window.addEventListener('error',function(e){if(!window.__bootErr)window.__bootErr=String(e.message||'')+(e.filename?' @'+String(e.filename).split('/').pop()+':'+e.lineno:'');});
 window.addEventListener('unhandledrejection',function(e){if(!window.__bootErr)window.__bootErr=String((e.reason&&e.reason.message)||e.reason||'');});
-setTimeout(function(){
+var __wd=function(force){
   if(window.__appStarted)return;
+  if(!force&&!window.__bootErr)return;   // エラーが無いなら、遅いだけなので待つ(端末が遅いとき、起動直前に出てしまっていた)
   var b=document.getElementById('boot');if(!b)return;
   b.classList.add('exit');b.style.animation='none';b.style.visibility='visible';b.style.opacity='1';b.style.pointerEvents='auto';
   b.innerHTML='<div style="position:absolute;left:0;right:0;top:35%;padding:24px;text-align:center"><div style="font-size:20px;font-weight:700;margin-bottom:10px">うまく開けませんでした</div><div style="opacity:.8;font-size:14px">アプリの読み込みに失敗しました。もう一度、お試しください。</div><div style="opacity:.55;font-size:11px;margin-top:12px;word-break:break-all">'+String(window.__bootErr||'応答がありません').replace(/[<>&]/g,'')+'</div><button onclick="location.reload()" style="margin-top:18px;padding:10px 22px;font:inherit;border-radius:8px;border:1px solid currentColor;background:none;color:inherit">再読み込み</button></div>';
-},9000);
+};
+setTimeout(function(){__wd(false);},9000);setTimeout(function(){__wd(true);},40000);
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -999,7 +1005,7 @@ function makeMuniLabels(){muniLayer.eachLayer(l=>{const n=l.feature.properties.n
 });
   try{layoutLabels();}catch(e){}
 }
-setTimeout(makeMuniLabels,350);
+afterBoot(makeMuniLabels,0);
 
 function linePts(list,loop){
   const pts=[];
@@ -1015,11 +1021,11 @@ const rails={
   jy:L.polyline(typeof RAIL_GEOM!=='undefined'&&RAIL_GEOM.jy?RAIL_GEOM.jy:linePts(YAMANOTE,true),{pane:'rail',color:css('--jy'),weight:5,opacity:.95,interactive:false}).addTo(map),
   jc:L.polyline(typeof RAIL_GEOM!=='undefined'&&RAIL_GEOM.jc?RAIL_GEOM.jc:linePts(CHUO,false),{pane:'rail',color:css('--jc'),weight:5,opacity:.95,interactive:false}).addTo(map)
 };
-setTimeout(()=>{[linePts(YAMANOTE,true),linePts(CHUO,false)].forEach(pts=>{for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],n=Math.ceil(km(a,b)/.1);
-  for(let k=0;k<=n;k++){const m=muniAt([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);if(m)LINE_MUNI.add(m);}}});try{styleMarkers();}catch(e){}},900);
+afterBoot(()=>{[linePts(YAMANOTE,true),linePts(CHUO,false)].forEach(pts=>{for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],n=Math.ceil(km(a,b)/.1);
+  for(let k=0;k<=n;k++){const m=muniAt([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);if(m)LINE_MUNI.add(m);}}});try{styleMarkers();}catch(e){}},200);
 
-const MAJOR=new Set(['東京','新宿','渋谷','池袋','上野','品川','秋葉原','中野','吉祥寺','立川']);
-const SEMI=new Set(['恵比寿','目黒','五反田','大塚','巣鴨','日暮里','御茶ノ水','四ツ谷','高円寺','荻窪','三鷹','国分寺']);
+const MAJOR=new Set(['東京','新宿','渋谷','池袋','上野']);   // 一番引きの地図では、この5駅だけ
+const SEMI=new Set(['品川','秋葉原','中野','吉祥寺','立川','恵比寿','目黒','五反田','大塚','巣鴨','日暮里','御茶ノ水','四ツ谷','高円寺','荻窪','三鷹','国分寺']);
 const tierOf=n=>MAJOR.has(n)?1:SEMI.has(n)?2:3;  // 最も引いた地図で名前を出す駅
 const TOUCH=matchMedia('(pointer:coarse)').matches,TP=TOUCH?26:16;  // v24: 指で押す端末では、反応する範囲を広げる
 const markers={},hits={};
@@ -2629,9 +2635,9 @@ applyTheme();
 // ---------- v24: 施設のピン（大学・図書館・博物館美術館・カラオケ・国立の研究機関） ----------
 // データは facilities.js（OpenStreetMapから作成。駅の周辺）。見学情報は、国立の研究機関のみ（ウェブで調べた内容）
 const FAC_TYPES={
-  'uni-n':{g:'uni',name:'国立大学',ch:'国',big:1,z:11},'uni-p':{g:'uni',name:'公立大学',ch:'公',big:1,z:11},'uni-s':{g:'uni',name:'私立大学',ch:'私',big:1,z:12.5},
+  'uni-n':{g:'uni',name:'国立大学',ch:'国',big:1,z:12.5},'uni-p':{g:'uni',name:'公立大学',ch:'公',big:1,z:12.5},'uni-s':{g:'uni',name:'私立大学',ch:'私',big:1,z:12.5},
   'lib-t':{g:'lib',name:'図書館（都立・国立）',ch:'図',z:13.5},'lib-p':{g:'lib',name:'図書館（区・市立）',ch:'図',z:13.5},'lib-r':{g:'lib',name:'図書館（私営）',ch:'図',z:13.5},'lib-m':{g:'lib',name:'図書館',ch:'図',z:13.5},
-  'mus':{g:'mus',name:'博物館・美術館',ch:'美',z:13.5},'kar':{g:'kar',name:'カラオケ',ch:'歌',z:14.5},'res':{g:'res',name:'国立の研究機関',ch:'研',big:1,z:11}
+  'mus':{g:'mus',name:'博物館・美術館',ch:'美',z:13.5},'kar':{g:'kar',name:'カラオケ',ch:'歌',z:14.5},'res':{g:'res',name:'国立の研究機関',ch:'研',big:1,z:12.5}
 };
 const FAC_GROUPS=[['uni','大学'],['lib','図書館'],['mus','博物館・美術館'],['kar','カラオケ'],['res','国立の研究機関']];
 S.ui.fac=Object.assign({on:['uni','lib','mus','kar','res']},S.ui.fac||{});
@@ -2648,6 +2654,7 @@ function facIcon(f,T){
   return L.divIcon({className:'',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2],html:'<div class="fpin '+(T.big?'big ':'')+'f-'+(f[0].indexOf('lib')===0?'lib':f[0])+'">'+T.ch+'</div>'+lab});
 }
 function refreshFac(){
+  if(window.__goQ)return;   // 起動の演出のあいだは、読まない
   if(!FAC){if(map.getZoom()>=11)loadFac();return;}
   const z=map.getZoom(),on=new Set(S.ui.fac.on),b=map.getBounds().pad(.25),want=new Map();
   for(const pass of [1,0]){   // 大学・研究機関を先に(数が多いと、上限で切るため)
@@ -2690,7 +2697,7 @@ function paintFacBar(){
   facBar.querySelector('#fac-close').onclick=()=>{facBar.hidden=true;};
 }
 document.getElementById('btn-fac').onclick=e=>{e.preventDefault();facBar.hidden=!facBar.hidden;if(!facBar.hidden){paintFacBar();loadFac();}};
-setTimeout(()=>{try{refreshFac();}catch(e){}},1200);
+afterBoot(()=>{try{refreshFac();}catch(e){}},0);
 // ---------- スポットのハイライト（v14）：観光名所・公園庭園・博物館美術館・遊ぶ・観る聴く・湯サウナ ----------
 // データは spots.js（tools/extract_spots.py で OSM から作る。沿線46駅から2km以内）。オンにしたときだけ読み込む
 const SPOT_CATS=[['tour','観光名所'],['park','公園・庭園'],['museum','博物館・美術館'],['play','遊ぶ'],['stage','観る・聴く'],['bath','湯・サウナ']];
@@ -3081,7 +3088,8 @@ function bootFade(){const b=document.getElementById('boot');if(!b)return;b.style
 setTimeout(()=>{const b=document.getElementById('boot');if(b)try{b.remove();}catch(e){}},7000);   // CSSで見えなくなったあと、取り除く
    // 何かあっても、出しっぱなしにしない   // 何かあっても、読み込み中の画面を出しっぱなしにしない
 bootReady=true;window.__appStarted=true;
-setTimeout(()=>{const s=document.createElement('script');s.src='places.js';s.async=true;document.head.appendChild(s);},700);   // 店・遊び場のデータ(約1.2MB)は、最初の表示のあとに読む
+requestAnimationFrame(()=>requestAnimationFrame(()=>window.__go()));   // 重い準備が終わってから、演出を動かし始める(動いている最中に処理が割り込まないので、なめらか)
+afterBoot(()=>{const s=document.createElement('script');s.src='places.js';s.async=true;document.head.appendChild(s);},0);   // 店・遊び場のデータ(約1.2MB)は、最初の表示のあとに読む
 {const bh=/^#t(\d+)$/.exec(location.hash),bg=/^#([sp]\d+)$/.exec(location.hash);
  setTimeout(()=>{
    if(bh&&STATIONS[+bh[1]])map.setView(BY[STATIONS[+bh[1]].n].ll,16,{animate:false});
