@@ -181,8 +181,8 @@ window.__V=(function(){
   })();
   var N=60,ease=function(x){return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;},L=function(p,q,y){return p+(q-p)*y;},kf1='@keyframes bcamj{',kf2='@keyframes bwrap{',i,y,x;
   for(i=0;i<=N;i++){x=i/N;y=ease(x);kf1+=(x*100).toFixed(3)+'%{transform:translate('+L(t0.x,tA.x,y)+'px,'+L(t0.y,tA.y,y)+'px) rotate('+(90*y)+'deg) scale('+(s0*Math.pow(ppu/s0,y))+')}';}
-  // 後半: 中野駅を支点にして、左回りに回りながら拡大する。前半の終わりの絵を、外側の要素(GPU合成)で動かす
-  var Kc=Math.cos(35.7*Math.PI/180),NU={x:(139.6659-128.6)*Kc*1000,y:(45.7-35.7056)*1000},ro={x:NU.x-O.x,y:NU.y-O.y};
+  // 後半: 新宿駅を支点にして、左回りに回りながら拡大する。前半の終わりの絵を、外側の要素(GPU合成)で動かす
+  var NU={x:Sj.x,y:Sj.y},ro={x:NU.x-O.x,y:NU.y-O.y};   // 回転・拡大の支点は新宿駅
   var NA={x:O.x+tA.x-ro.y*ppu,y:O.y+tA.y+ro.x*ppu},NB={x:O.x+tB.x+sB*ro.x,y:O.y+tB.y+sB*ro.y};
   for(i=0;i<=N;i++){x=i/N;y=ease(x);
     var th=(90-90*y)*Math.PI/180,sg=ppu*Math.pow(sB/ppu,y),c=Math.cos(th),sn=Math.sin(th),nx=L(NA.x,NB.x,y),ny=L(NA.y,NB.y,y),
