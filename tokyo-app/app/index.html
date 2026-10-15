@@ -4,7 +4,9 @@
 #boot{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#F4F2EC;color:#1F2629;font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",sans-serif;transition:opacity .45s ease}
 @media (prefers-color-scheme: dark){#boot{background:#121619;color:#E6ECEE}}
 #boot.done{opacity:0;pointer-events:none}
-#boot{overflow:hidden;display:block;animation:bootout .45s linear 6.55s forwards}
+#boot{overflow:hidden;display:block;animation:none}
+#boot.swap{opacity:0;transition:opacity .45s linear;pointer-events:none}
+body.flying .leaflet-marker-pane,body.flying .leaflet-tooltip-pane,body.flying .leaflet-overlay-pane,body.flying .leaflet-popup-pane,body.flying .leaflet-rail-pane,body.flying .leaflet-muni-pane{visibility:hidden}
 #boot .jp{display:none}@keyframes jphide{99%{opacity:0}to{opacity:0;visibility:hidden}}   /* 後半は、日本地図を描かない(描画を軽くし、ちらつきを防ぐ) */
 @keyframes bootout{to{opacity:0;visibility:hidden;transform:scale(var(--fz,2.2))}}
 #boot .bsv{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
@@ -186,27 +188,44 @@ window.__V=(function(){
   // 後半: 新宿駅を支点にして、左回りに回りながら拡大する。前半の終わりの絵を、外側の要素(GPU合成)で動かす
   var NU={x:Sj.x,y:Sj.y},ro={x:NU.x-O.x,y:NU.y-O.y};   // 回転・拡大の支点は新宿駅
   var NA={x:O.x+tA.x-ro.y*ppu,y:O.y+tA.y+ro.x*ppu},NB={x:O.x+tB.x+sB*ro.x,y:O.y+tB.y+sB*ro.y};
-  var SEQ=window.__SEQ||0,cl01=function(v){return v<0?0:v>1?1:v;};
-  for(i=0;i<=N;i++){x=i/N;
-    // SEQ=0: 回転と拡大を同時に / SEQ=1: 先に回転(前半)、そのあと拡大(後半) / SEQ=2: 先に拡大、そのあと回転
-    var RF=.39,   // 位相の前半39%(約1.4秒)で回転、残り(約2.2秒)で拡大・移動する
-        zo=function(u){u=cl01(u);return u-.5*Math.sin(2*Math.PI*u)/(2*Math.PI);},   // 速度の変化が小さい(端で0.5倍、中央で1.5倍)
-        yr=SEQ===1?ease(cl01(x/RF)):SEQ===2?ease(cl01((x-1+RF)/RF)):ease(x),
-        yz=SEQ===1?zo((x-RF)/(1-RF)):SEQ===2?zo(x/(1-RF)):ease(x);
-    y=yz;
-    var th=(90-90*yr)*Math.PI/180,sg=ppu*Math.pow(sB/ppu,yz),c=Math.cos(th),sn=Math.sin(th),nx=L(NA.x,NB.x,yz),ny=L(NA.y,NB.y,yz),
-        tx=nx-O.x-sg*(c*ro.x-sn*ro.y),ty=ny-O.y-sg*(sn*ro.x+c*ro.y),
-        r=-90*yr*Math.PI/180,rc=Math.cos(r),rs=Math.sin(r),sr=sg/ppu,
-        ux=tx-sr*(rc*tA.x-rs*tA.y),uy=ty-sr*(rs*tA.x+rc*tA.y);
-    kf2+=(x*100).toFixed(3)+'%{transform:translate('+ux+'px,'+uy+'px) rotate('+(-90*yr)+'deg) scale('+sr+')}';}
+  // ===== 新方式: 東京が完成した時点で、1枚の画像にして回転させる。そのあと本物の地図に切り替えて、現在地まで拡大・移動する =====
+  var RD=1.4,NS={x:NA.x,y:NA.y};   // 回転の長さ / 回転の支点(新宿駅の画面上の位置。回転しても動かない)
+  window.__FIT={Zfit:Math.log(WT*360/(256*TS))/Math.LN2,nx:NS.x,ny:NS.y,TP:TP,RD:RD};
+  var M=30;
+  for(i=0;i<=M;i++){x=i/M;y=ease(x);
+    var rr=-90*y*Math.PI/180,rc=Math.cos(rr),rs=Math.sin(rr),px=NS.x-O.x,py=NS.y-O.y,
+        ux=NS.x-O.x-(rc*px-rs*py),uy=NS.y-O.y-(rs*px+rc*py);
+    kf2+=(x*100).toFixed(3)+'%{transform:translate('+ux+'px,'+uy+'px) rotate('+(-90*y)+'deg)}';}
   var w=document.createElement('div');w.className='bwrap';sv.parentNode.insertBefore(w,sv);w.appendChild(sv);
-  var st=document.createElement('style');st.textContent=kf1+'}'+kf2+'}#boot svg.bsv g.cam{animation:none}#boot .bwrap{animation:bwrap 3.6s linear '+TP+'s forwards}';document.head.appendChild(st);
+  // 完成した東京(前半の終わりの姿)を、1枚の画像(キャンバス)に描く
+  var snapOk=false;
+  try{
+    var dpr=Math.min(2,window.devicePixelRatio||1),cv=document.createElement('canvas'),g=cv.getContext('2d');
+    // 回転すると、画面の外にあった部分が見えてくる。画面と、回転後に見える範囲(支点の周りに+90度)の両方を含む大きさで描く
+    var cr=[[0,0],[vw,0],[vw,vh],[0,vh]],bx0=0,by0=0,bx1=vw,by1=vh;
+    cr.forEach(function(c){var dx=c[0]-NS.x,dy=c[1]-NS.y,qx=NS.x-dy,qy=NS.y+dx;if(qx<bx0)bx0=qx;if(qx>bx1)bx1=qx;if(qy<by0)by0=qy;if(qy>by1)by1=qy;});
+    bx0=Math.floor(bx0)-4;by0=Math.floor(by0)-4;bx1=Math.ceil(bx1)+4;by1=Math.ceil(by1)+4;
+    cv.width=Math.round((bx1-bx0)*dpr);cv.height=Math.round((by1-by0)*dpr);cv.className='snap';
+    cv.style.left=bx0+'px';cv.style.top=by0+'px';cv.style.width=(bx1-bx0)+'px';cv.style.height=(by1-by0)+'px';
+    var cs=getComputedStyle(document.documentElement),dk=document.documentElement.dataset.theme==='dark'||(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches&&document.documentElement.dataset.theme!=='light'),
+        wf=(cs.getPropertyValue('--muni-on')||'').trim()||(dk?'#1E2D2A':'#DCE7E2'),we=(cs.getPropertyValue('--muni-edge')||'').trim()||(dk?'#4C5E58':'#8FA29A');
+    g.setTransform(dpr,0,0,dpr,0,0);g.translate(-bx0,-by0);g.translate(O.x+tA.x,O.y+tA.y);g.rotate(Math.PI/2);g.scale(ppu,ppu);g.translate(-O.x,-O.y);
+    g.lineJoin='round';g.lineCap='round';
+    [].forEach.call(sv.querySelectorAll('path.bw'),function(e){var P=new Path2D(e.getAttribute('d'));g.fillStyle=wf;g.fill(P);g.strokeStyle=we;g.lineWidth=.5;g.stroke(P);});
+    [].forEach.call(sv.querySelectorAll('path.br'),function(e){g.strokeStyle=e.classList.contains('jy')?'#5FA834':'#E2592A';g.lineWidth=1.6;g.stroke(new Path2D(e.getAttribute('d')));});
+    [].forEach.call(sv.querySelectorAll('circle.bd'),function(e){g.beginPath();g.arc(+e.getAttribute('cx'),+e.getAttribute('cy'),2.2,0,6.2832);g.fillStyle=dk?'#E6ECEE':'#fff';g.fill();g.lineWidth=.8;g.strokeStyle=dk?'#121619':'#1F2629';g.stroke();});
+    w.appendChild(cv);snapOk=true;
+  }catch(e){snapOk=false;}
+  var st=document.createElement('style');
+  st.textContent=kf1+'}'+kf2+'}#boot svg.bsv g.cam{animation:none}#boot .bwrap{animation:bwrap '+RD+'s linear '+TP+'s forwards}'+
+    (snapOk?'#boot .bwrap canvas.snap{position:absolute;visibility:hidden;animation:bshow .01s linear '+TP+'s forwards}#boot .bwrap .bsv{animation:bhide .01s linear '+TP+'s forwards}':'');
+  document.head.appendChild(st);
 })();
 </script>
 <script>
 window.__bootErr=null;
 window.__goQ=[];
-window.__go=function(){var b=document.getElementById('boot');if(b)b.classList.add('go');document.body.classList.add('bootplay');setTimeout(function(){try{if(window.__finalView)window.__finalView();}catch(e){}},4700);window.__goDone=1;try{if(window.__bootGo)window.__bootGo();}catch(e){}var q=window.__goQ;window.__goQ=null;if(q)q.forEach(function(a){setTimeout(a[0],a[1]+7300);});};
+window.__go=function(){var b=document.getElementById('boot');if(b)b.classList.add('go');document.body.classList.add('bootplay');setTimeout(function(){try{if(window.__landing)window.__landing();}catch(e){}},window.__FIT?(window.__FIT.TP+window.__FIT.RD)*1000+50:4700);window.__goDone=1;try{if(window.__bootGo)window.__bootGo();}catch(e){}var q=window.__goQ;window.__goQ=null;if(q)q.forEach(function(a){setTimeout(a[0],a[1]+7800);});};
 window.afterBoot=function(f,m){if(window.__goQ)window.__goQ.push([f,m||0]);else setTimeout(f,m||0);};
 setTimeout(window.__go,15000);
 window.addEventListener('error',function(e){if(!window.__bootErr)window.__bootErr=String(e.message||'')+(e.filename?' @'+String(e.filename).split('/').pop()+':'+e.lineno:'');});
@@ -1175,7 +1194,7 @@ const _ttSetContent=L.Tooltip.prototype.setContent;L.Tooltip.prototype.setConten
 const __bh=/^#t(\d+)$/.exec(location.hash),__bs=__bh&&STATIONS[+__bh[1]];  // 再読み込み時は、最初から その街の位置で始める（全体地図から飛ばない）
 const __H=(document.getElementById('map')&&document.getElementById('map').clientHeight)||innerHeight;
 const __C=__bs?__bs.ll:L.latLng(window.__V.lat,window.__V.lng);   // 巣鴨(右上)と目白(左下)が画面に収まる位置
-const map=L.map('map',{trackResize:false,zoomControl:false,attributionControl:true,minZoom:9,maxZoom:17,zoomSnap:.5}).setView(__C,__bs?16:window.__V.Zo);
+const map=L.map('map',{trackResize:false,zoomControl:false,attributionControl:true,minZoom:9,maxZoom:17,zoomSnap:.5}).setView(__C,__bs?16:window.__V.Z);
 L.control.zoom({position:'topright'}).addTo(map);
 map.attributionControl.setPrefix(false);
 map.attributionControl.addAttribution('境界：国土数値情報（行政区域）を加工');
@@ -3405,12 +3424,44 @@ afterBoot(()=>{try{
   const go=()=>navigator.geolocation.getCurrentPosition(p=>window.goStartLoc(p.coords.latitude,p.coords.longitude),()=>{},{enableHighAccuracy:false,timeout:6000,maximumAge:600000});
   if(navigator.permissions&&navigator.permissions.query)navigator.permissions.query({name:'geolocation'}).then(r=>{if(r.state==='granted')go();}).catch(()=>{});
 }catch(e){}},1200);
-window.__finalView=function(){try{document.body.classList.remove('bootplay');if(__bs)return;map.setView([window.__V.lat,window.__V.lng],window.__V.Z,{animate:false});}catch(e){}};
-// 最後の拡大のあと見える範囲の地図の画像を、先に読み込んでおく
+// 着地: 回転が終わった絵(北が上)と同じ位置・縮尺で本物の地図に切り替え、現在地の地図まで、速度の変化が小さい動きで拡大・移動する
+window.__landing=function(){
+  try{
+    const F=window.__FIT,V=window.__V,boot=document.getElementById('boot');
+    document.body.classList.remove('bootplay');
+    if(__bs||!F){if(boot)boot.classList.add('swap');return;}
+    const sj=L.latLng(35.6896,139.7006),z0=F.Zfit,z1=V.Z;
+    map.options.zoomSnap=0;
+    const c0=map.unproject(map.project(sj,z0).add([innerWidth/2-F.nx,innerHeight/2-F.ny]),z0);
+    document.body.classList.add('flying');
+    map.setView(c0,z0,{animate:false});
+    try{updateLowTiles();}catch(e){}
+    if(boot)boot.classList.add('swap');   // 画像を、ゆっくり薄くして、本物の地図に切り替える
+    const W0=map.project(c0,z1),W1=map.project([V.lat,V.lng],z1),T=2400,t0=performance.now(),den=1-Math.pow(2,-(z1-z0));
+    const zo=u=>u-.5*Math.sin(2*Math.PI*u)/(2*Math.PI);   // 速度の変化が小さい(端0.5倍・中央1.5倍)
+    const step=now=>{
+      let u=(now-t0)/T;if(u>1)u=1;
+      const z=z0+(z1-z0)*zo(u),w=u>=1?1:(1-Math.pow(2,-(z-z0)))/den;   // 画面上の移動の速さが、ほぼ一定になる配分
+      const c=map.unproject(L.point(W0.x+(W1.x-W0.x)*w,W0.y+(W1.y-W0.y)*w),z1);
+      try{map._move(c,z);}catch(e){}
+      if(u<1)requestAnimationFrame(step);
+      else{map.options.zoomSnap=.5;try{map.setView([V.lat,V.lng],z1,{animate:false,reset:true});}catch(e){}   // 線・点・駅名を、最終の縮尺で描き直す
+        document.body.classList.remove('flying');window.__landed=true;}
+    };
+    requestAnimationFrame(step);
+  }catch(e){document.body.classList.remove('flying','bootplay');try{map.options.zoomSnap=.5;}catch(_){}}
+};
+// 拡大の途中で見える範囲の地図の画像を、先に読み込んでおく(各縮尺について、通る位置の周辺)
 (function(){try{
-  const Z=Math.floor(window.__V.Z),c=map.project([window.__V.lat,window.__V.lng],Z),hw=innerWidth/2*Math.pow(2,Z-window.__V.Z)+256,hh=innerHeight/2*Math.pow(2,Z-window.__V.Z)+256,n=Math.pow(2,Z);
-  for(let x=Math.floor((c.x-hw)/256);x<=Math.floor((c.x+hw)/256);x++)for(let y=Math.floor((c.y-hh)/256);y<=Math.floor((c.y+hh)/256);y++){
-    if(y<0||y>=n)continue;const im=new Image();im.src='https://tile.openstreetmap.org/'+Z+'/'+(((x%n)+n)%n)+'/'+y+'.png';}
+  const F=window.__FIT,V=window.__V;if(!F||__bs)return;
+  const z0=F.Zfit,z1=V.Z,sj=L.latLng(35.6896,139.7006),c0=map.unproject(map.project(sj,z0).add([innerWidth/2-F.nx,innerHeight/2-F.ny]),z0),
+        W0=map.project(c0,z1),W1=map.project([V.lat,V.lng],z1),den=1-Math.pow(2,-(z1-z0));
+  for(let Z=Math.floor(z0);Z<=Math.floor(z1);Z++){
+    const w=Z<=z0?0:(1-Math.pow(2,-(Z-z0)))/den,cp=L.point(W0.x+(W1.x-W0.x)*w,W0.y+(W1.y-W0.y)*w),k=Math.pow(2,Z-z1),c={x:cp.x*k,y:cp.y*k},
+          hw=innerWidth/2*Math.pow(2,Z-Math.max(z0,Math.min(z1,Z)))+256,hh=innerHeight/2*Math.pow(2,Z-Math.max(z0,Math.min(z1,Z)))+256,n=Math.pow(2,Z);
+    for(let x=Math.floor((c.x-hw)/256);x<=Math.floor((c.x+hw)/256);x++)for(let y=Math.floor((c.y-hh)/256);y<=Math.floor((c.y+hh)/256);y++){
+      if(y<0||y>=n)continue;const im=new Image();im.src='https://tile.openstreetmap.org/'+Z+'/'+(((x%n)+n)%n)+'/'+y+'.png';}
+  }
 }catch(e){}})();
 afterBoot(()=>{const s=document.createElement('script');s.src='places.js';s.async=true;document.head.appendChild(s);},3000);   // 店・遊び場のデータ(約1.2MB)は、最初の表示のあとに読む
 {const bh=/^#t(\d+)$/.exec(location.hash),bg=/^#([sp]\d+)$/.exec(location.hash);
