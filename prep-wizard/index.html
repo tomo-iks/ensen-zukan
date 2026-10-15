@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>開発事前準備ウィザード</title>
+<style>
+  :root {
+    --bg:#f6f7f9; --card:#fff; --text:#1c2430; --muted:#5d6877; --line:#d9dee5;
+    --accent:#2457d6; --ok:#17803d; --warn:#b45309; --err:#b91c1c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12161c; --card:#1b212a; --text:#e6eaf0; --muted:#9aa5b4; --line:#323b47; --accent:#6d97ff; --ok:#4ade80; --warn:#fbbf24; --err:#f87171; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.6 system-ui,"Hiragino Sans","Yu Gothic UI",sans-serif; }
+  header, main { max-width:920px; margin:0 auto; padding:0 16px; }
+  header { padding-top:16px; padding-bottom:8px; }
+  main { padding-bottom:48px; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  header p { margin:0 0 8px; color:var(--muted); font-size:13px; }
+  .flow { display:flex; flex-wrap:wrap; gap:4px; font-size:12px; color:var(--muted); }
+  .flow span { background:var(--card); border:1px solid var(--line); border-radius:999px; padding:1px 10px; }
+  .meter { display:flex; gap:12px; flex-wrap:wrap; font-size:13px; margin:10px 0; }
+  .meter b { font-weight:600; }
+  nav { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+  nav button { flex:1 1 110px; padding:8px 6px; border:1px solid var(--line); background:var(--card); color:var(--muted); border-radius:8px; cursor:pointer; font-size:13px; }
+  nav button.active { border-color:var(--accent); color:var(--accent); font-weight:600; }
+  nav button.done::after { content:" ✓"; color:var(--ok); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; }
+  .why { background:var(--bg); border-left:3px solid var(--accent); padding:8px 12px; margin:0 0 8px; font-size:13px; color:var(--muted); }
+  label { display:block; font-weight:600; margin:14px 0 4px; }
+  .hint { font-weight:400; color:var(--muted); font-size:12px; display:block; }
+  .tier { display:inline-block; font-size:11px; font-weight:600; border-radius:4px; padding:0 6px; margin-left:6px; vertical-align:1px; }
+  .tier.must { background:color-mix(in srgb,var(--err) 16%,transparent); color:var(--err); }
+  .tier.imp  { background:color-mix(in srgb,var(--warn) 16%,transparent); color:var(--warn); }
+  .tier.opt  { background:color-mix(in srgb,var(--muted) 18%,transparent); color:var(--muted); }
+  input[type=text], textarea, select { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--text); font:inherit; }
+  textarea { min-height:70px; resize:vertical; }
+  input:focus, textarea:focus, select:focus { outline:2px solid var(--accent); outline-offset:-1px; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:600px) { .row { grid-template-columns:1fr; } }
+  .actions { display:flex; justify-content:space-between; gap:8px; margin-top:20px; flex-wrap:wrap; }
+  button.btn { padding:9px 16px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--text); cursor:pointer; font:inherit; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.small { padding:5px 10px; font-size:13px; }
+  button:disabled { opacity:.5; cursor:default; }
+  .feat { display:grid; grid-template-columns:2fr 2fr 110px 36px; gap:8px; margin-bottom:8px; }
+  @media (max-width:600px) { .feat { grid-template-columns:1fr 1fr; } }
+  .check { margin:0 0 12px; padding:0; list-style:none; }
+  .check li { padding:6px 10px; border-radius:8px; margin-bottom:6px; font-size:14px; }
+  .check .err { background:color-mix(in srgb,var(--err) 14%,transparent); color:var(--err); }
+  .check .warn { background:color-mix(in srgb,var(--warn) 14%,transparent); color:var(--warn); }
+  .check .info { background:color-mix(in srgb,var(--muted) 14%,transparent); color:var(--muted); }
+  .check .ok { background:color-mix(in srgb,var(--ok) 14%,transparent); color:var(--ok); }
+  h2 { font-size:16px; margin:24px 0 6px; }
+  .tabs { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+  .tabs button { padding:6px 12px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--text); cursor:pointer; }
+  .tabs button.active { border-color:var(--accent); color:var(--accent); font-weight:600; }
+  pre { white-space:pre-wrap; word-break:break-word; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:14px; font:13px/1.6 ui-monospace,Consolas,monospace; max-height:420px; overflow:auto; margin:0; }
+  .meta { color:var(--muted); font-size:12px; margin:4px 0 8px; }
+  details { margin-top:12px; }
+  summary { cursor:pointer; font-weight:600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>開発事前準備ウィザード</h1>
+  <p>通常の開発工程に沿って、「本筋で必須」の項目から順に詰めます。足りない点はClaudeとの対話で補い、AI向けドキュメントを生成します(入力はこの端末に自動保存)。</p>
+  <div class="flow"><span>① 企画(課題・ユーザー)</span><span>② 目標・指標</span><span>③ 要件定義(スコープ)</span><span>④ 設計・技術</span><span>⑤ 品質・運用ルール</span><span>⑥ 命名・規約</span><span>⑦ 検証・出力</span></div>
+  <div class="meter" id="meter"></div>
+</header>
+<main>
+  <nav id="nav"></nav>
+  <section class="card" id="panel"></section>
+</main>
+
+<script>
+(() => {
+  const KEY = "prep-wizard-v2";
+  const TIER = { must:["必須","must"], imp:["重要","imp"], opt:["任意・後回し可","opt"] };
+  const defaults = {
+    problem:"", personaName:"", personaPain:"", personaContext:"", personaSkill:"初心者",
+    goal:"", metrics:["","",""], nonGoals:"",
+    features:[{name:"", metric:"", prio:"Must"}],
+    platform:"Webブラウザ", stack:"", storage:"なし(ブラウザ内のみ)", deps:"外部ライブラリは原則使わない", constraints:"",
+    errors:"", testing:"", forbidden:"",
+    appName:"", uiRules:"",
+    assets:"", release:""
+  };
+  let S, step = 0, docTab = 0, importMsg = "";
+  try { S = Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) { S = JSON.parse(JSON.stringify(defaults)); }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const filled = v => String(v || "").trim().length > 0;
+  const metricsFilled = () => S.metrics.filter(filled);
+  const feats = () => S.features.filter(f => filled(f.name));
+
+  // 項目の優先度定義(本筋で不可欠なものほど先・重く)
+  const FIELDS = [
+    { id:"problem",  tier:"must", label:"解決したい課題",       ok:() => filled(S.problem) },
+    { id:"personaPain", tier:"must", label:"ペルソナの困りごと", ok:() => filled(S.personaPain) },
+    { id:"personaName", tier:"must", label:"ペルソナ(誰が使うか)", ok:() => filled(S.personaName) },
+    { id:"goal",     tier:"must", label:"目標",                 ok:() => filled(S.goal) },
+    { id:"metrics",  tier:"must", label:"成功指標",             ok:() => metricsFilled().length > 0 },
+    { id:"nonGoals", tier:"must", label:"やらないこと(非ゴール)", ok:() => filled(S.nonGoals) },
+    { id:"features", tier:"must", label:"Must機能",             ok:() => feats().some(f => f.prio === "Must") },
+    { id:"personaContext", tier:"imp", label:"利用シーン",      ok:() => filled(S.personaContext) },
+    { id:"assets",   tier:"imp",  label:"既存の資料・データと出所", ok:() => filled(S.assets) },
+    { id:"release",  tier:"imp",  label:"公開範囲・利用者数",   ok:() => filled(S.release) },
+    { id:"stack",    tier:"imp",  label:"言語・フレームワーク", ok:() => filled(S.stack) },
+    { id:"errors",   tier:"imp",  label:"エラー時の方針",       ok:() => filled(S.errors) },
+    { id:"testing",  tier:"imp",  label:"確認・テスト方法",     ok:() => filled(S.testing) },
+    { id:"constraints", tier:"opt", label:"制約",              ok:() => filled(S.constraints) },
+    { id:"forbidden",   tier:"opt", label:"禁止事項",          ok:() => filled(S.forbidden) },
+    { id:"uiRules",  tier:"opt",  label:"UI・命名の規約",       ok:() => filled(S.uiRules) },
+    { id:"appName",  tier:"opt",  label:"アプリ名(仮称で可)",  ok:() => filled(S.appName) }
+  ];
+  const tierBadge = t => `<span class="tier ${TIER[t][1]}">${TIER[t][0]}</span>`;
+  const count = t => { const a = FIELDS.filter(f => f.tier === t); return [a.filter(f => f.ok()).length, a.length]; };
+
+  const name = () => filled(S.appName) ? S.appName.trim() : "(仮称)";
+
+  const steps = [
+    { title:"1 企画", done:() => ["problem","personaName","personaPain"].every(i => FIELDS.find(f=>f.id===i).ok()),
+      why:"【企画】開発の出発点。「誰の」「どんな困りごと」を解く物かが決まれば、以降の判断基準がすべて決まります。",
+      render:() => `
+        ${area("problem","解決したい課題","現状の何が問題か。1〜2文で","must")}
+        ${text("personaName","ペルソナ(誰が使うか)","例: 30代・在宅勤務のフリーランスデザイナー","must")}
+        ${area("personaPain","そのペルソナの困りごと","現状どんな手間・不満があるか","must")}
+        ${area("personaContext","利用シーン","いつ・どこで・どの端末で使うか","imp")}
+        ${area("assets","既存の資料・データと出所","手元のExcel・画像・文書など。出所とライセンス(再利用してよいか)も。なければ「なし」","imp")}
+        <label>ITリテラシー ${tierBadge("imp")}</label>
+        <select data-k="personaSkill">${["初心者","一般","詳しい"].map(o=>`<option ${S.personaSkill===o?"selected":""}>${o}</option>`).join("")}</select>` },
+    { title:"2 目標・指標", done:() => FIELDS.find(f=>f.id==="goal").ok() && FIELDS.find(f=>f.id==="metrics").ok(),
+      why:"【目標設定】「完成」の定義です。測れる指標がないと、機能の足し引きと完成判断で迷走します。",
+      render:() => `
+        ${area("goal","目標(ゴール)","このアプリで達成したい状態を1文で","must")}
+        <label>成功指標(最大3つ)${tierBadge("must")}<span class="hint">測れる形で。例: 「入力から完成まで3分以内」「操作は3回以内」</span></label>
+        ${S.metrics.map((m,i)=>`<input type="text" style="margin-bottom:6px" data-metric="${i}" value="${esc(m)}" placeholder="指標 ${i+1}">`).join("")}` },
+    { title:"3 要件定義", done:() => FIELDS.find(f=>f.id==="features").ok() && FIELDS.find(f=>f.id==="nonGoals").ok(),
+      why:"【要件定義】各機能を成功指標に紐づけ、「やらないこと」を先に決めます。紐づかない機能はバグと工数だけ増やします。",
+      render:() => `
+        <label>機能一覧 ${tierBadge("must")}<span class="hint">Must は最大5つ推奨。Won't は今回作らない機能。</span></label>
+        ${S.features.map((f,i)=>`
+          <div class="feat">
+            <input type="text" data-fname="${i}" value="${esc(f.name)}" placeholder="機能名">
+            <select data-fmetric="${i}">
+              <option value="">(紐づく指標を選択)</option>
+              ${metricsFilled().map(m=>`<option ${f.metric===m?"selected":""}>${esc(m)}</option>`).join("")}
+            </select>
+            <select data-fprio="${i}">${["Must","Should","Won't"].map(p=>`<option ${f.prio===p?"selected":""}>${p}</option>`).join("")}</select>
+            <button class="btn small" data-fdel="${i}" title="削除">×</button>
+          </div>`).join("")}
+        <button class="btn small" id="addFeat">+ 機能を追加</button>
+        ${area("nonGoals","やらないこと(非ゴール)","スコープ肥大を防ぐ最重要項目。作らない物・扱わない範囲","must")}
+        ${area("release","公開範囲・利用者数","例: 自分だけ / 友人に配布 / 一般公開(一般公開は権利・個人情報の確認が増える)","imp")}
+        ${area("constraints","制約","期限・環境・予算・守るべきルールなど","opt")}` },
+    { title:"4 設計・技術", done:() => FIELDS.find(f=>f.id==="stack").ok(),
+      why:"【設計】要件を満たす最小の構成を選びます。単純なほどAIの提案がぶれず、環境依存のエラーも減ります。",
+      render:() => `
+        <div class="row">
+          <div><label>プラットフォーム ${tierBadge("imp")}</label>
+            <select data-k="platform">${["Webブラウザ","スマホアプリ","デスクトップ","CLI","その他"].map(o=>`<option ${S.platform===o?"selected":""}>${o}</option>`).join("")}</select></div>
+          <div><label>データ保存 ${tierBadge("imp")}</label>
+            <select data-k="storage">${["なし(ブラウザ内のみ)","ローカルファイル","DB","外部API/クラウド"].map(o=>`<option ${S.storage===o?"selected":""}>${o}</option>`).join("")}</select></div>
+        </div>
+        ${text("stack","言語・フレームワーク","例: HTML + JavaScript(ビルドなし)。「単純だから」と説明できるものを","imp")}
+        ${text("deps","依存関係の方針","","imp")}` },
+    { title:"5 品質ルール", done:() => FIELDS.find(f=>f.id==="errors").ok() && FIELDS.find(f=>f.id==="testing").ok(),
+      why:"【テスト・運用準備】「何をもって完成か」「何をしてはいけないか」を先に決め、手戻りとエラーを最小化します。",
+      render:() => `
+        ${area("errors","エラー時の方針","例: 原因と次の行動をユーザーに表示。入力はすべて検証","imp")}
+        ${area("testing","確認・テスト方法","例: Must機能ごとに受け入れ基準を1つ決め、手動で確認","imp")}
+        ${area("forbidden","禁止事項","例: 依頼外のファイル変更、不要なライブラリ追加、無断の仕様変更","opt")}` },
+    { title:"6 命名・規約", done:() => filled(S.appName),
+      why:"【任意】開発の本筋には影響しません。仮称のまま進めて構いません。後で決めても手戻りはほぼ発生しません。",
+      render:() => `
+        ${text("appName","アプリ名","空のままなら「(仮称)」として扱います","opt")}
+        ${area("uiRules","UI・命名の規約","例: 文言は敬体/ボタンは動詞/変数名は英語キャメルケース","opt")}` },
+    { title:"7 検証・出力", done:() => false, why:"", render:renderResult }
+  ];
+
+  function text(k,l,h,t){ return `<label>${l} ${tierBadge(t)}${h?`<span class="hint">${h}</span>`:""}</label><input type="text" data-k="${k}" value="${esc(S[k])}">`; }
+  function area(k,l,h,t){ return `<label>${l} ${tierBadge(t)}${h?`<span class="hint">${h}</span>`:""}</label><textarea data-k="${k}">${esc(S[k])}</textarea>`; }
+
+  // ---- 検証(優先度順) ----
+  function validate() {
+    const r = [];
+    FIELDS.filter(f => f.tier === "must" && !f.ok()).forEach(f => r.push(["err", `【必須】未入力: ${f.label}`]));
+    feats().filter(f => f.prio !== "Won't" && !filled(f.metric)).forEach(f => r.push(["warn", `「${f.name}」が成功指標に紐づいていません。不要な機能の可能性があります`]));
+    metricsFilled().filter(m => !feats().some(f => f.metric === m && f.prio !== "Won't")).forEach(m => r.push(["warn", `指標「${m}」を満たす機能がありません`]));
+    const must = feats().filter(f => f.prio === "Must").length;
+    if (must > 5) r.push(["warn", `Must機能が${must}個あります。5個以内に絞ると品質とトークン効率が上がります`]);
+    FIELDS.filter(f => f.tier === "imp" && !f.ok()).forEach(f => r.push(["warn", `【重要】未入力: ${f.label}`]));
+    const opt = FIELDS.filter(f => f.tier === "opt" && !f.ok()).map(f => f.label);
+    if (opt.length) r.push(["info", `【任意】未入力(後回し可): ${opt.join("、")}`]);
+    if (!r.some(x => x[0] === "err")) r.unshift(["ok","本筋の必須項目はすべて入力済みです"]);
+    return r;
+  }
+
+  // ---- ドキュメント生成 ----
+  const openList = () => {
+    const l = validate().filter(([t]) => t === "err" || t === "warn").map(([,m]) => `- ${m}`);
+    return l.length ? l.join("\n") : "- なし";
+  };
+  const nz = (v, d="(未記入)") => filled(v) ? String(v).trim() : d;
+  const featLine = f => `- [${f.prio}] ${f.name}${filled(f.metric) ? ` → 指標: ${f.metric}` : ""}`;
+
+  function docs() {
+    const m = metricsFilled().map((x,i) => `${i+1}. ${x}`).join("\n") || "(未記入)";
+    const must = feats().filter(f => f.prio === "Must"), should = feats().filter(f => f.prio === "Should"), wont = feats().filter(f => f.prio === "Won't");
+    const summary = `${nz(S.personaName)}が、${nz(S.goal)}ためのアプリ`;
+    const persona = `# ペルソナ・課題・目標: ${name()}
+
+> 全ての設計判断はこの文書に照らして行う。迷ったら「ペルソナの課題を解決し、成功指標に寄与するか」で決める。
+
+## 概要
+${summary}
+
+## ペルソナ
+- 誰: ${nz(S.personaName)}
+- 困りごと: ${nz(S.personaPain)}
+- 利用シーン: ${nz(S.personaContext)}
+- ITリテラシー: ${S.personaSkill}
+
+## 解決したい課題
+${nz(S.problem)}
+
+## 目標
+${nz(S.goal)}
+
+## 成功指標
+${m}
+
+## 参考資料・既存データ(出所・ライセンス)
+${nz(S.assets)}
+
+## 非ゴール(やらないこと)
+${nz(S.nonGoals)}
+`;
+    const req = `# 要件・スコープ: ${name()}
+
+> 各機能は成功指標に紐づく。紐づかない機能は実装しない。
+
+## 機能一覧
+### Must(必須)
+${must.map(featLine).join("\n") || "- なし"}
+
+### Should(できれば)
+${should.map(featLine).join("\n") || "- なし"}
+
+### Won't(今回作らない)
+${wont.map(f => `- ${f.name}`).join("\n") || "- なし"}
+
+## 受け入れ基準(Must機能ごとに追記)
+${must.map(f => `- ${f.name}: (操作→期待する結果を1文で)`).join("\n") || "- (Must機能なし)"}
+
+## 公開範囲・利用者数
+${nz(S.release)}
+
+## 制約
+${nz(S.constraints)}
+
+## 未解決(決定したら本文に反映)
+${openList()}
+`;
+    const design = `# 設計・技術方針: ${name()}
+
+> 原則: 単純さを最優先する。要件を満たす最小の構成を選ぶ。
+
+## 技術
+- プラットフォーム: ${S.platform}
+- 言語・フレームワーク: ${nz(S.stack)}
+- データ保存: ${S.storage}
+- 依存関係: ${nz(S.deps)}
+
+## UI・命名規約
+${nz(S.uiRules)}
+
+## 一貫性ルール
+- 同じ概念には同じ名前・同じ文言・同じ見た目を使う
+- 新しい部品を作る前に既存の部品を再利用できないか確認する
+- 1ファイル/1関数は1つの責務に絞る
+
+## エラー方針
+${nz(S.errors)}
+
+## 確認方法
+${nz(S.testing)}
+`;
+    const claude = `# ${name()}
+
+${summary}
+
+## 前提(判断基準)
+- 課題: ${nz(S.problem)}
+- 目標: ${nz(S.goal)}
+- 成功指標: ${metricsFilled().join(" / ") || "(未記入)"}
+- 迷ったら「ペルソナの課題解決と成功指標に寄与するか」で決める。寄与しないものは作らない。
+
+## スコープ
+- Must: ${must.map(f => f.name).join(", ") || "なし"}
+- やらない: ${[nz(S.nonGoals,""), ...wont.map(f => f.name)].filter(Boolean).join(" / ") || "(未記入)"}
+
+## 技術
+- ${S.platform} / ${nz(S.stack)} / 保存: ${S.storage}
+- 依存: ${nz(S.deps)}
+- 詳細は PERSONA_GOALS.md / REQUIREMENTS.md / DESIGN.md を、必要な時だけ参照する
+
+## 規約
+${nz(S.uiRules)}
+
+## 作業ルール(エラー最小化)
+- 変更前に対象ファイルを読む。推測で書かない。不明点は確認する
+- 1回の依頼では1つの目的だけを変更する。依頼外の変更・リファクタをしない
+- 変更後は、動作確認の方法と結果を報告する。確認できないことは「未確認」と書く
+- エラー方針: ${nz(S.errors)}
+- 確認方法: ${nz(S.testing)}
+- 禁止: ${nz(S.forbidden)}
+
+## トークン効率
+- 回答は結論から簡潔に。同じ説明を繰り返さない
+- 全体を読み直さず、必要なファイル・範囲だけ読む
+- 差分だけを提示し、ファイル全体の再掲をしない
+- 仕様が決まっている事項は再質問しない。新しい決定のみこの文書に追記する
+`;
+    return [
+      { name:"CLAUDE.md", body:claude },
+      { name:"PERSONA_GOALS.md", body:persona },
+      { name:"REQUIREMENTS.md", body:req },
+      { name:"DESIGN.md", body:design }
+    ];
+  }
+
+  // ---- Claudeとの対話用プロンプト ----
+  function interviewPrompt() {
+    const state = JSON.stringify(S, null, 2);
+    return `あなたは開発前の要件定義を支援するファシリテーターです。以下の「構想(JSON)」を読み、開発開始前に不足・曖昧・矛盾している点をユーザーと対話で詰めてください。
+
+# 進め方
+0. 手元の既存資料・データ(Excel・画像・文書など)があれば最初に確認する。出所とライセンス(特に一般公開時)も確認する。範囲(取り込む/取り込まない)は推測で決めない。
+1. まず構想を読み、不足/曖昧/矛盾を優先度順に最大5件で箇条書きにする(推測で補わない)。
+2. 優先度は次の順。上が埋まるまで下に進まない。
+   必須: 課題 → ペルソナと困りごと → 目標 → 成功指標(測れる形) → Must機能(各機能が指標に紐づくか) → 非ゴール
+   重要: 利用シーン → 既存資料・データの出所 → 公開範囲(保存先・同期の有無) → 技術スタック(最小構成か) → エラー方針 → 確認方法
+   任意(最後・仮称で可): 制約 → 禁止事項 → UI規約 → アプリ名
+3. 質問は1回に最大3問。選択肢を添え、「分からない/後で」も選べるようにする。
+4. 各機能が「成功指標に寄与するか」「単純さを損なわないか」を必ず確認し、Mustは5個以内に絞る。
+5. 勝手に仕様を足さない。ユーザーが答えた内容だけを反映する。
+6. 必須項目がすべて埋まったら、下記形式のJSONだけを出力する(コードブロック1つ)。ユーザーはこれをウィザードに取り込む。
+
+# 出力JSONのキー(構想JSONと同じ構造)
+problem, personaName, personaPain, personaContext, personaSkill("初心者"|"一般"|"詳しい"), goal, metrics(文字列配列・最大3), nonGoals, features([{name, metric(metricsのいずれか), prio("Must"|"Should"|"Won't")}]), platform, stack, storage, deps, constraints, errors, testing, forbidden, appName, uiRules, assets, release
+
+# 構想(JSON)
+${state}`;
+  }
+
+  function importJson(text) {
+    try {
+      const m = text.match(/\{[\s\S]*\}/);
+      const o = JSON.parse(m ? m[0] : text);
+      let n = 0;
+      Object.keys(defaults).forEach(k => {
+        if (!(k in o)) return;
+        if (k === "metrics" && Array.isArray(o.metrics)) { S.metrics = [0,1,2].map(i => String(o.metrics[i] || "")); n++; }
+        else if (k === "features" && Array.isArray(o.features)) {
+          S.features = o.features.map(f => ({ name:String(f.name||""), metric:String(f.metric||""), prio:["Must","Should","Won't"].includes(f.prio) ? f.prio : "Should" }));
+          if (!S.features.length) S.features = [{name:"",metric:"",prio:"Must"}];
+          n++;
+        } else if (typeof o[k] === "string") { S[k] = o[k]; n++; }
+      });
+      save();
+      return `${n}項目を取り込みました。`;
+    } catch (e) { return "取り込めませんでした: JSONの形式を確認してください。"; }
+  }
+
+  function renderResult() {
+    const v = validate(), d = docs();
+    if (docTab >= d.length) docTab = 0;
+    return `
+      <div class="why">本筋の必須項目から順に確認します。不足があれば下の「Claudeに詰めてもらう」を使ってください。</div>
+      <h2>① 不足の確認(優先度順)</h2>
+      <ul class="check">${v.map(([t,m]) => `<li class="${t}">${t==="err"?"✕":t==="warn"?"△":t==="info"?"・":"✓"} ${esc(m)}</li>`).join("")}</ul>
+
+      <h2>② Claudeに構想を詰めてもらう</h2>
+      <div class="meta">プロンプトをコピーして Claude に貼り付け、質問に答えます。最後に出力されるJSONを下に貼り付けて取り込みます。</div>
+      <div class="actions" style="margin-top:0"><button class="btn primary" id="copyPrompt">対話用プロンプトをコピー</button></div>
+      <details><summary>プロンプトを表示</summary><pre>${esc(interviewPrompt())}</pre></details>
+      <label>Claudeが出力したJSONを取り込む</label>
+      <textarea id="importBox" placeholder="{ &quot;problem&quot;: &quot;...&quot;, ... }"></textarea>
+      <div class="actions" style="margin-top:8px"><button class="btn" id="doImport">取り込む</button><span class="meta" id="importMsg">${esc(importMsg)}</span></div>
+
+      <h2>③ ドキュメントの出力</h2>
+      <div class="tabs">${d.map((x,i)=>`<button data-doc="${i}" class="${i===docTab?"active":""}">${x.name}</button>`).join("")}</div>
+      <div class="meta">約 ${d[docTab].body.length} 文字。プロジェクトのルートに同名で保存して使います。</div>
+      <pre id="preview">${esc(d[docTab].body)}</pre>
+      <div class="actions">
+        <button class="btn" id="copy">このファイルをコピー</button>
+        <span>
+          <button class="btn" id="dlOne">このファイルを保存</button>
+          <button class="btn primary" id="dlAll">4ファイルをまとめて保存</button>
+        </span>
+      </div>`;
+  }
+
+  // ---- 描画 ----
+  function renderMeter() {
+    const [a,b] = count("must"), [c,d] = count("imp"), [e,f] = count("opt");
+    document.getElementById("meter").innerHTML =
+      `<span>${tierBadge("must")}<b>${a}/${b}</b></span><span>${tierBadge("imp")}<b>${c}/${d}</b></span><span>${tierBadge("opt")}<b>${e}/${f}</b></span>`;
+  }
+
+  function renderNav() {
+    const nav = document.getElementById("nav");
+    nav.innerHTML = steps.map((s,i) =>
+      `<button data-step="${i}" class="${i===step?"active":""} ${i<steps.length-1&&s.done()?"done":""}">${s.title}</button>`).join("");
+    nav.querySelectorAll("button").forEach(b => b.onclick = () => { step = +b.dataset.step; render(); });
+  }
+
+  function render() {
+    renderMeter();
+    renderNav();
+    const s = steps[step], last = step === steps.length - 1;
+    document.getElementById("panel").innerHTML =
+      (s.why && !last ? `<div class="why">${s.why}</div>` : "") + s.render() +
+      (last ? `<div class="actions"><button class="btn" id="prev">← 戻る</button><button class="btn" id="reset">入力をリセット</button></div>` :
+      `<div class="actions"><button class="btn" id="prev" ${step===0?"disabled":""}>← 戻る</button><button class="btn primary" id="next">次へ →</button></div>`);
+    bind();
+  }
+
+  function download(name, body) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([body], {type:"text/markdown;charset=utf-8"}));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  async function copyText(t, btn, doneMsg) {
+    try { await navigator.clipboard.writeText(t); btn.textContent = doneMsg; }
+    catch (e) { btn.textContent = "コピーできませんでした(表示して手動で選択してください)"; }
+  }
+
+  function bind() {
+    const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+    // 入力中は再描画せず、メーターとナビの完了表示だけ更新する
+    const touch = () => { save(); renderMeter(); renderNav(); };
+    $$("[data-k]").forEach(el => el.oninput = el.onchange = () => { S[el.dataset.k] = el.value; touch(); });
+    $$("[data-metric]").forEach(el => el.oninput = () => {
+      const i = +el.dataset.metric, old = S.metrics[i];
+      S.metrics[i] = el.value;
+      S.features.forEach(f => { if (f.metric === old) f.metric = el.value; });
+      touch();
+    });
+    $$("[data-fname]").forEach(el => el.oninput = () => { S.features[+el.dataset.fname].name = el.value; touch(); });
+    $$("[data-fmetric]").forEach(el => el.onchange = () => { S.features[+el.dataset.fmetric].metric = el.value; touch(); });
+    $$("[data-fprio]").forEach(el => el.onchange = () => { S.features[+el.dataset.fprio].prio = el.value; touch(); });
+    $$("[data-fdel]").forEach(el => el.onclick = () => {
+      S.features.splice(+el.dataset.fdel, 1);
+      if (!S.features.length) S.features.push({name:"",metric:"",prio:"Must"});
+      save(); render();
+    });
+    const add = $("#addFeat"); if (add) add.onclick = () => { S.features.push({name:"",metric:"",prio:"Must"}); save(); render(); };
+    const nx = $("#next"); if (nx) nx.onclick = () => { step++; render(); window.scrollTo(0,0); };
+    const pv = $("#prev"); if (pv) pv.onclick = () => { step--; render(); window.scrollTo(0,0); };
+    $$("[data-doc]").forEach(el => el.onclick = () => { docTab = +el.dataset.doc; render(); });
+    if (step === steps.length - 1) {
+      const d = docs();
+      $("#copy").onclick = e => copyText(d[docTab].body, e.target, "コピーしました");
+      $("#dlOne").onclick = () => download(d[docTab].name, d[docTab].body);
+      $("#dlAll").onclick = () => d.forEach((x,i) => setTimeout(() => download(x.name, x.body), i*250));
+      $("#copyPrompt").onclick = e => copyText(interviewPrompt(), e.target, "コピーしました。Claudeに貼り付けてください");
+      $("#doImport").onclick = () => { importMsg = importJson($("#importBox").value); render(); };
+      const rs = $("#reset"); rs.onclick = () => { if (confirm("入力内容をすべて消去します。よろしいですか?")) { S = JSON.parse(JSON.stringify(defaults)); save(); step = 0; importMsg = ""; render(); } };
+    }
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
