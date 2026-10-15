@@ -461,6 +461,25 @@ button.chip[aria-pressed="true"],.ffilter .chip[aria-pressed="true"]{background:
 .gi svg{width:20px;height:20px}.locbx{margin-top:12px;padding:12px;border-radius:var(--r);background:var(--chip)}.locbx p{font-size:13px;margin:4px 0 10px}
 .guidebx .qs{font-size:13px;line-height:1.55;margin:0 0 8px}.guidebx .grow{font-size:13.5px}.guidebx .askbt{position:sticky;bottom:-18px;background:var(--panel);padding:10px 0 4px;margin:0}
 .telrow{margin:6px 0 8px}.telbtn{display:inline-flex;flex-direction:column;gap:2px;padding:9px 16px;border-radius:var(--r);background:var(--accent);color:#fff!important;font-weight:700;text-decoration:none;font-size:16px;line-height:1.3}.telbtn small{font-weight:400;font-size:11px;opacity:.9}
+.tabs{align-items:flex-end}
+.tabs #tab-zukan{flex:1 1 auto;font-size:16px}
+.tabs #tab-quiz,.tabs #tab-rec{flex:0 0 auto;padding:10px 12px;font-size:12px;font-weight:500;color:var(--ink2)}
+.coord h2{margin:0 0 10px;font-size:20px}
+.coord .step{display:flex;align-items:center;gap:8px;margin:14px 0 8px;font-size:14px}
+.coord .no{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font:700 13px var(--f-num);display:grid;place-items:center}
+.goal{display:flex;flex-direction:column;gap:8px}
+.goto{display:grid;grid-template-columns:1fr;gap:2px;text-align:left;padding:12px 14px;border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);min-height:var(--tap)}
+.goto .gt{font-weight:700;font-size:16px}.goto .gt small{margin-left:8px;font-weight:400;font-size:12px;color:var(--ink2)}
+.goto .gw{font-size:13px;color:var(--accent);font-weight:700}.goto .gm{font-size:12px;color:var(--ink2)}
+details.more{margin-top:18px;border-top:1px solid var(--rule);padding-top:10px}
+details.more summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--ink2);padding:8px 0;min-height:var(--tap);display:flex;align-items:center}
+.walkstart{background:var(--panel)!important;color:var(--ink)!important;border:1px solid var(--rule)!important;font-size:13px!important;padding:8px 14px!important;border-radius:999px!important;box-shadow:var(--shadow)}
+.walkstart::before{content:"🚶 "}
+.gi{width:56px;height:40px;flex:none;display:grid;place-items:center;text-align:center;line-height:1.2}
+.gi svg{display:block;margin:auto}.gi b{white-space:nowrap}
+.grow{align-items:center}.grow>span:last-child{flex:1;min-width:0}
+:root[data-theme="dark"] .leaflet-lowtile-pane img{filter:invert(.92) hue-rotate(180deg) brightness(.82) contrast(.9) saturate(.7)}
+.leaflet-lowtile-pane{opacity:.8;filter:saturate(.55)}
 .sb-h2{margin:10px 0 6px;font-weight:700;font-size:13px;color:var(--ink2)}
 .fpin{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;font:700 14px var(--f-disp);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);transform:scale(var(--zs,1));box-sizing:border-box}
 .fpin.big{width:34px;height:34px;font-size:17px;border-radius:50% 50% 50% 4px;border-width:2.5px}
@@ -687,7 +706,7 @@ a{color:var(--accent)}
   <div class="phead">
     <button class="handle" id="handle" aria-label="パネルの開閉"></button>
     <div class="tabs" role="tablist">
-      <button role="tab" id="tab-zukan" aria-selected="true">図鑑</button>
+      <button role="tab" id="tab-zukan" aria-selected="true">行き先を選ぶ</button>
       <button role="tab" id="tab-quiz" aria-selected="false">クイズ</button>
       <button role="tab" id="tab-rec" aria-selected="false">記録</button>
     </div>
@@ -1211,6 +1230,19 @@ function zoomLabels(){
   c.toggle('hide-st',false);c.toggle('far',z<12);c.toggle('mid',z<13);c.toggle('muni-off',z<12.5||hideMuni);
 }
 map.on('zoomend',()=>{zoomLabels();styleMarkers();});
+// 縮小したとき(拡大13未満)は、同梱の簡略図形だけだと粗いので、細かい地図(OpenStreetMap)を下敷きにする。通信できないときは、簡略図形のまま
+map.createPane('lowtile');map.getPane('lowtile').style.zIndex=305;
+var lowOsm=null;
+function updateLowTiles(){
+  try{
+    const want=map.getZoom()<13&&navigator.onLine!==false&&!(typeof osmOn!=='undefined'&&osmOn);
+    if(want){if(!lowOsm)lowOsm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{pane:'lowtile',maxZoom:19,maxNativeZoom:18,keepBuffer:2,updateWhenZooming:false,attribution:'© OpenStreetMap contributors'});
+      if(!map.hasLayer(lowOsm))lowOsm.addTo(map);}
+    else if(lowOsm&&map.hasLayer(lowOsm))map.removeLayer(lowOsm);
+  }catch(e){}
+}
+map.on('zoomend',updateLowTiles);
+afterBoot(updateLowTiles,0);
 document.head.insertAdjacentHTML('beforeend','<style>.hide-st .st-label.sel{display:block!important}</style>');
 
 let osmOn=false,osm=null,osmOk=false,osmErr=0;
@@ -1286,22 +1318,42 @@ function moodHTML(){
   <p class="qs" style="margin:8px 0 0">気分の分類は、駅の解説をもとにした下書きです。</p>`;
 }
 
+function coordHTML(){
+  const gsel=FF.big,cnt={};
+  if(gsel)SHOPS.forEach(s=>{if(s.big===gsel)cnt[s.town]=(cnt[s.town]||0)+1;});
+  let res=[];
+  if(mood||gsel){
+    res=STATIONS.map(s=>{const mm=!!mood&&(MOOD_ST[s.n]||[]).includes(mood),c=cnt[s.n]||0;
+      if(mood&&!mm)return null;if(gsel&&!c&&SHOPS.length)return null;
+      return {s,c,score:(mm?10:0)+Math.min(c,20)};}).filter(Boolean).sort((a,b)=>b.score-a.score).slice(0,6);
+  }
+  const gname=gsel?(FOODBIG.find(x=>x[0]===gsel)||[,''])[1]:'';
+  const why=r=>[mood?'気分「'+mood+'」に合う街':'',gsel&&r.c?gname+' '+r.c+'軒':''].filter(Boolean).join('　');
+  return `<div class="coord"><h2>今日の行き先をえらぶ</h2>
+  <div class="step"><span class="no">1</span><b>今日の気分は？</b></div>
+  <div class="chips">${MOODS.map(([k])=>`<button class="chip" data-mood="${k}" aria-pressed="${mood===k}">${k}</button>`).join('')}</div>
+  <div class="step"><span class="no">2</span><b>今日食べたいものは？</b></div>
+  <div class="chips">${FOODBIG.map(([k,n])=>`<button class="chip" data-gen="${k}" aria-pressed="${gsel===k}">${n}</button>`).join('')}</div>
+  ${(mood||gsel)?`<div class="step"><span class="no">3</span><b>おすすめの行き先${res.length?'（'+res.length+'件）':''}</b></div>
+  ${res.length?`<div class="goal">${res.map(r=>`<button class="goto" data-go="${r.s.n}"><span class="gt">${stDot(r.s.n)}${r.s.n}<small>${r.s.m}</small></span><span class="gw">${why(r)||r.s.c}</span><span class="gm">${r.s.s.slice(0,2).join('・')}</span></button>`).join('')}</div>`:`<p class="qs">${gsel&&!SHOPS.length?'お店のデータを読み込んでいます。少しお待ちください。':'条件に合う街が見つかりませんでした。どちらかを変えてみてください。'}</p>`}`:'<p class="qs">気分と食べたいものを選ぶと、行き先の街とお店を提案します（どちらか一方だけでも構いません）。</p>'}</div>`;
+}
 function renderIndex(){
   const groups=(line==='all'?['jy','jc']:[line]).map(l=>{
     const list=LN[l].list.filter(n=>!(l==='jc'&&line==='all'&&YAMANOTE.includes(n)));
     return `<div class="group"><h3><span class="dot" style="background:var(--${l})"></span>${LN[l].name}${l==='jc'&&line==='all'?'（山手線と重なる駅を除く）':''}</h3>
     <div class="stlist">${list.map(n=>`<button data-st="${n}" class="${cat&&BY[n].c!==cat?'dim':''}">${stDot(n)}<span>${n}</span></button>`).join('')}</div></div>`;
   }).join('');
-  body.innerHTML=`  <div class="sec" style="margin:0 0 16px"><h3>今日の気分は？</h3>
-  <div class="chips">${MOODS.map(([k])=>`<button class="chip" data-mood="${k}" aria-pressed="${mood===k}">${k}</button>`).join('')}</div>
-  ${mood?moodHTML():''}</div>
-  ${recTownsHTML()}<p class="lead">山手線30駅と中央線快速（東京〜立川）19駅、あわせて46の街を収録。気分から選ぶか、地図のピンや下の一覧から街を選んでください。</p>
+  body.innerHTML=`${coordHTML()}
+  <details class="more"><summary>ほかの探し方（食事・遊び場・駅の一覧）</summary>
+  ${recTownsHTML()}<p class="lead">山手線30駅と中央線快速（東京〜立川）19駅、あわせて46の街を収録しています。地図のピンや下の一覧から街を選べます。</p>
   <div class="chips">${CATS.map(c=>`<button class="chip" data-cat="${c}" aria-pressed="${cat===c}">${c}</button>`).join('')}</div>
-  ${groups}
+  ${groups}</details>
   <p class="disclaim">解説はClaudeが一般的な知識をもとに作成したものです。地名の由来などで「諸説あり」の印がある部分は、一次資料での確認をおすすめします。</p>`;
   body.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>openStation(b.dataset.st));
   body.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{cat=cat===b.dataset.cat?null:b.dataset.cat;render();});
   body.querySelectorAll('[data-mood]').forEach(b=>b.onclick=()=>{mood=mood===b.dataset.mood?null:b.dataset.mood;render();});
+  body.querySelectorAll('[data-gen]').forEach(b=>b.onclick=()=>{FF.big=FF.big===b.dataset.gen?null:b.dataset.gen;save();render();});
+  body.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const n=b.dataset.go;FF.all=false;save();enterTown(n);townTab='food';render();});
   wireRecTowns();
 }
 
@@ -2726,13 +2778,14 @@ function openGuide(first){
   const w=document.createElement('div');w.id='guide';w.className='askbk';
   w.innerHTML='<div class="askbx guidebx" role="dialog" aria-modal="true" aria-label="使い方ガイド"><h2>はじめに：使い方</h2><p class="qs">画面の右上のボタンで、できること</p><div class="grows">'+
     rows.map(r=>'<div class="grow"><span class="gi">'+r[0]+'</span><span>'+r[1]+'</span></div>').join('')+'</div>'+
-    '<p class="qs">駅の名前や丸を押すと、その街の紹介が開きます。画面下のパネルでは、図鑑・クイズ・記録を切り替えられます。</p>'+
+    '<p class="qs">駅の名前や丸を押すと、その街の紹介が開きます。画面下のパネルでは、気分と食べたいものから行き先を選べます（クイズ・記録は右上の小さなタブ）。</p>'+
     (first?'<div class="locbx"><b>位置情報について</b><p class="qs">お散歩の記録と「現在地」に使います。画面を消しても記録を続けるには、「常に許可」を選んでください。位置情報は端末の中だけに保存され、外部へは送りません。</p><button class="primary" data-a="loc">位置情報を許可する</button></div>':'')+
     '<div class="askbt"><button class="primary" data-a="close">'+(first?'はじめる':'閉じる')+'</button></div></div>';
   document.body.appendChild(w);
   w.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-a]');if(!a)return;
     if(a.dataset.a==='loc'){requestLocationAlways();a.textContent='確認を出しました';a.disabled=true;return;}
-    w.remove();});
+    w.remove();
+    if(document.body.classList.contains('startclean')){setTimeout(()=>{try{setMapOnly(false);document.body.classList.remove('startclean');}catch(e){}},1500);}});
   try{S.ui.guideSeen=1;save();}catch(e){}
 }
 if(!S.ui.guideSeen)afterBoot(()=>openGuide(true),300);
@@ -3208,6 +3261,7 @@ function bootFade(){const b=document.getElementById('boot');if(!b)return;b.style
 setTimeout(()=>{const b=document.getElementById('boot');if(b)try{b.remove();}catch(e){}},7000);   // CSSで見えなくなったあと、取り除く
    // 何かあっても、出しっぱなしにしない   // 何かあっても、読み込み中の画面を出しっぱなしにしない
 try{setMapOnly(true);document.body.classList.add('startclean');
+  afterBoot(()=>{try{if(document.body.classList.contains('maponly')&&!document.getElementById('guide')){setMapOnly(false);document.body.classList.remove('startclean');}}catch(e){}},1800);
   const sc=()=>{if(window.__autoZ)return;document.body.classList.remove('startclean');map.off('movestart zoomstart',sc);};
   map.on('movestart zoomstart',sc);document.getElementById('maponly').addEventListener('click',sc,{once:true});}catch(e){}   // 起動直後は、地図だけを見せる
 bootReady=true;window.__appStarted=true;
