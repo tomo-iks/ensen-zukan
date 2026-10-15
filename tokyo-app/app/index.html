@@ -53,7 +53,12 @@ window.__V=(function(){
       wpx=(vw-2*padX)/(a.lo-c.lo),hpx=(vh-padT-padB)/(my(a.la)-my(c.la));    // 1度あたりの画面px
       var k=Math.min(wpx,hpx),Z=Math.floor(Math.log(k*360/256)/Math.LN2*2)/2;   // 0.5刻み(切り下げ)
       Z=Math.max(12,Math.min(16,Z));
-  return {Z:Z,Zo:Z,lat:(a.la+c.la)/2,lng:(a.lo+c.lo)/2,my:my,k:256*Math.pow(2,Z)/360};
+  var V={Z:Z,Zo:Z,lat:(a.la+c.la)/2,lng:(a.lo+c.lo)/2,my:my,k:256*Math.pow(2,Z)/360,loc:false};
+  try{   // 前回の現在地が分かっていれば、その場所を中心に、数km(拡大14)で終わる
+    var q=JSON.parse(localStorage.getItem('ensen-loc')||'null');
+    if(q&&q.lat>35.45&&q.lat<35.95&&q.lng>139.25&&q.lng<140.05&&Date.now()-q.t<30*864e5){V.lat=q.lat;V.lng=q.lng;V.Z=14;V.Zo=14;V.k=256*Math.pow(2,14)/360;V.loc=true;}
+  }catch(e){}
+  return V;
 })();
 (function(){
   var b=document.getElementById('boot'),sv=b&&b.querySelector('.bsv');if(!sv)return;
@@ -90,7 +95,7 @@ window.__V=(function(){
 <script>
 window.__bootErr=null;
 window.__goQ=[];
-window.__go=function(){var b=document.getElementById('boot');if(b)b.classList.add('go');var q=window.__goQ;window.__goQ=null;if(q)q.forEach(function(a){setTimeout(a[0],a[1]+7300);});};
+window.__go=function(){var b=document.getElementById('boot');if(b)b.classList.add('go');var q=window.__goQ;window.__goQ=null;if(q)q.forEach(function(a){setTimeout(a[0],a[1]+6200);});};
 window.afterBoot=function(f,m){if(window.__goQ)window.__goQ.push([f,m||0]);else setTimeout(f,m||0);};
 setTimeout(window.__go,15000);
 window.addEventListener('error',function(e){if(!window.__bootErr)window.__bootErr=String(e.message||'')+(e.filename?' @'+String(e.filename).split('/').pop()+':'+e.lineno:'');});
@@ -480,6 +485,10 @@ details.more summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--i
 .grow{align-items:center}.grow>span:last-child{flex:1;min-width:0}
 :root[data-theme="dark"] .leaflet-lowtile-pane img{filter:invert(.92) hue-rotate(180deg) brightness(.82) contrast(.9) saturate(.7)}
 .leaflet-lowtile-pane{opacity:.8;filter:saturate(.55)}
+@keyframes panelin{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+@keyframes topin{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+body.panelfade #panel{animation:panelin 1.6s cubic-bezier(.2,.7,.2,1) both}
+body.panelfade #top,body.panelfade #walkbar{animation:topin 1.6s cubic-bezier(.2,.7,.2,1) both}
 .sb-h2{margin:10px 0 6px;font-weight:700;font-size:13px;color:var(--ink2)}
 .fpin{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;font:700 14px var(--f-disp);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);transform:scale(var(--zs,1));box-sizing:border-box}
 .fpin.big{width:34px;height:34px;font-size:17px;border-radius:50% 50% 50% 4px;border-width:2.5px}
@@ -1080,7 +1089,7 @@ function makeMuniLabels(){muniLayer.eachLayer(l=>{const n=l.feature.properties.n
 });
   try{layoutLabels();}catch(e){}
 }
-afterBoot(makeMuniLabels,0);
+afterBoot(makeMuniLabels,2300);
 
 function linePts(list,loop){
   const pts=[];
@@ -1097,7 +1106,7 @@ const rails={
   jc:L.polyline(typeof RAIL_GEOM!=='undefined'&&RAIL_GEOM.jc?RAIL_GEOM.jc:linePts(CHUO,false),{pane:'rail',color:css('--jc'),weight:5,opacity:.95,interactive:false}).addTo(map)
 };
 afterBoot(()=>{[linePts(YAMANOTE,true),linePts(CHUO,false)].forEach(pts=>{for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],n=Math.ceil(km(a,b)/.1);
-  for(let k=0;k<=n;k++){const m=muniAt([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);if(m)LINE_MUNI.add(m);}}});try{styleMarkers();}catch(e){}},200);
+  for(let k=0;k<=n;k++){const m=muniAt([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);if(m)LINE_MUNI.add(m);}}});try{styleMarkers();}catch(e){}},2800);
 
 const MAJOR=new Set(['東京','新宿','渋谷','池袋','上野']);   // 一番引きの地図では、この5駅だけ
 const SEMI=new Set(['品川','秋葉原','中野','吉祥寺','立川','恵比寿','目黒','五反田','大塚','巣鴨','日暮里','御茶ノ水','四ツ谷','高円寺','荻窪','三鷹','国分寺']);
@@ -1242,7 +1251,7 @@ function updateLowTiles(){
   }catch(e){}
 }
 map.on('zoomend',updateLowTiles);
-afterBoot(updateLowTiles,0);
+afterBoot(()=>{window.__bootOver=true;updateLowTiles();try{updateDetail();}catch(e){}},3600);
 document.head.insertAdjacentHTML('beforeend','<style>.hide-st .st-label.sel{display:block!important}</style>');
 
 let osmOn=false,osm=null,osmOk=false,osmErr=0;
@@ -1643,7 +1652,7 @@ function indexTileAsync(k,D,done){
 window.ENSEN_TILE=(k,D)=>indexTileAsync(k,D,T=>{tileData[k]=T;tileState[k]='ok';(tileWait[k]||[]).forEach(f=>f());delete tileWait[k];});
 // v24: 見えている範囲より広く先読みする。区画データは周囲の8区画、地図の絵は上下左右に1枚ぶん外側まで
 function prefetchTiles(){
-  if(map.getZoom()<DETAIL_Z-1)return;
+  if(map.getZoom()<DETAIL_Z-1||!window.__bootOver)return;
   const c=map.getCenter(),i=Math.floor(c.lat/TDLAT),j=Math.floor(c.lng/TDLNG);
   for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const k=(i+a)+'_'+(j+b);if(TILESET.has(k)&&!tileData[k]&&!tileState[k])loadTile(k);}
 }
@@ -1677,6 +1686,7 @@ const DetailLayer=L.GridLayer.extend({
   // 見えている範囲より1枚ぶん外側まで読み込んで、地図を動かしたときに待たせない（v24）
   _getTiledPixelBounds(center){const b=L.GridLayer.prototype._getTiledPixelBounds.call(this,center),s=this.getTileSize();return L.bounds(b.min.subtract(s),b.max.add(s));},
   createTile(co,done){
+    if(!window.__bootOver){const e=document.createElement('canvas');setTimeout(()=>done(null,e),0);return e;}   // 起動の演出中は、重い詳細地図を作らない(終わってから描き直す)
     const ck='d'+co.z+'/'+co.x+'/'+co.y,hit=tcGet(ck);if(hit&&!hit.isConnected){setTimeout(()=>done(null,hit),0);return hit;}
     const size=this.getTileSize(),dpr=Math.min(co.z>=16?3:2,window.devicePixelRatio||1),cv=document.createElement('canvas');cv._ck=ck;
     cv.width=size.x*dpr;cv.height=size.y*dpr;
@@ -2785,10 +2795,10 @@ function openGuide(first){
   w.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-a]');if(!a)return;
     if(a.dataset.a==='loc'){requestLocationAlways();a.textContent='確認を出しました';a.disabled=true;return;}
     w.remove();
-    if(document.body.classList.contains('startclean')){setTimeout(()=>{try{setMapOnly(false);document.body.classList.remove('startclean');}catch(e){}},1500);}});
+    if(document.body.classList.contains('startclean')){setTimeout(()=>{try{document.body.classList.add('panelfade');setMapOnly(false);document.body.classList.remove('startclean');setTimeout(()=>document.body.classList.remove('panelfade'),2200);}catch(e){}},1200);}});
   try{S.ui.guideSeen=1;save();}catch(e){}
 }
-if(!S.ui.guideSeen)afterBoot(()=>openGuide(true),300);
+if(!S.ui.guideSeen)afterBoot(()=>openGuide(true),3200);
 document.getElementById('btn-me').onclick=e=>{e.preventDefault();
   if(inArtifact||!navigator.geolocation){toast('この画面では現在地を使えません。'+PAGES_URL+' で開くと使えます');return;}
   meStart();
@@ -2863,7 +2873,7 @@ function paintFacBar(){
   facBar.querySelector('#fac-close').onclick=()=>{facBar.hidden=true;};
 }
 document.getElementById('btn-fac').onclick=e=>{e.preventDefault();facBar.hidden=!facBar.hidden;if(!facBar.hidden){paintFacBar();loadFac();}};
-afterBoot(()=>{try{refreshFac();}catch(e){}},0);
+afterBoot(()=>{try{refreshFac();}catch(e){}},4200);
 // ---------- スポットのハイライト（v14）：観光名所・公園庭園・博物館美術館・遊ぶ・観る聴く・湯サウナ ----------
 // データは spots.js（tools/extract_spots.py で OSM から作る。沿線46駅から2km以内）。オンにしたときだけ読み込む
 const SPOT_CATS=[['tour','観光名所'],['park','公園・庭園'],['museum','博物館・美術館'],['play','遊ぶ'],['stage','観る・聴く'],['bath','湯・サウナ']];
@@ -3261,13 +3271,14 @@ function bootFade(){const b=document.getElementById('boot');if(!b)return;b.style
 setTimeout(()=>{const b=document.getElementById('boot');if(b)try{b.remove();}catch(e){}},7000);   // CSSで見えなくなったあと、取り除く
    // 何かあっても、出しっぱなしにしない   // 何かあっても、読み込み中の画面を出しっぱなしにしない
 try{setMapOnly(true);document.body.classList.add('startclean');
-  afterBoot(()=>{try{if(document.body.classList.contains('maponly')&&!document.getElementById('guide')){setMapOnly(false);document.body.classList.remove('startclean');}}catch(e){}},1800);
+  afterBoot(()=>{try{if(document.body.classList.contains('maponly')&&!document.getElementById('guide')){document.body.classList.add('panelfade');setMapOnly(false);document.body.classList.remove('startclean');setTimeout(()=>document.body.classList.remove('panelfade'),2200);}}catch(e){}},1500);
   const sc=()=>{if(window.__autoZ)return;document.body.classList.remove('startclean');map.off('movestart zoomstart',sc);};
   map.on('movestart zoomstart',sc);document.getElementById('maponly').addEventListener('click',sc,{once:true});}catch(e){}   // 起動直後は、地図だけを見せる
 bootReady=true;window.__appStarted=true;
 requestAnimationFrame(()=>requestAnimationFrame(()=>window.__go()));
 // 現在地が分かれば、現在地を中心に数km(拡大14)を表示する。東京の周辺にいない、または許可がないときは、巣鴨〜目白の画面のまま
 window.goStartLoc=function(lat,lng){
+  try{localStorage.setItem('ensen-loc',JSON.stringify({lat:lat,lng:lng,t:Date.now()}));}catch(e){}
   try{
     if(__bs||!document.body.classList.contains('startclean'))return;   // 共有リンクで開いた・もう操作した、ときは動かさない
     if(lat<35.45||lat>35.95||lng<139.25||lng>140.05)return;
@@ -3281,7 +3292,7 @@ setTimeout(()=>{try{
   if(navigator.permissions&&navigator.permissions.query)navigator.permissions.query({name:'geolocation'}).then(r=>{if(r.state==='granted')go();}).catch(()=>{});
 }catch(e){}},7500);
 if(!__bs&&window.__V.Z>window.__V.Zo)setTimeout(()=>{try{window.__autoZ=true;map.setView([window.__V.lat,window.__V.lng],window.__V.Z,{animate:true,duration:.8});}catch(e){}setTimeout(()=>{window.__autoZ=false;},1400);},6300);   // 重い準備が終わってから、演出を動かし始める(動いている最中に処理が割り込まないので、なめらか)
-afterBoot(()=>{const s=document.createElement('script');s.src='places.js';s.async=true;document.head.appendChild(s);},0);   // 店・遊び場のデータ(約1.2MB)は、最初の表示のあとに読む
+afterBoot(()=>{const s=document.createElement('script');s.src='places.js';s.async=true;document.head.appendChild(s);},3000);   // 店・遊び場のデータ(約1.2MB)は、最初の表示のあとに読む
 {const bh=/^#t(\d+)$/.exec(location.hash),bg=/^#([sp]\d+)$/.exec(location.hash);
  setTimeout(()=>{
    if(bh&&STATIONS[+bh[1]])map.setView(BY[STATIONS[+bh[1]].n].ll,16,{animate:false});
