@@ -5,7 +5,7 @@
 @media (prefers-color-scheme: dark){#boot{background:#121619;color:#E6ECEE}}
 #boot.done{opacity:0;pointer-events:none}
 #boot{overflow:hidden;display:block;animation:bootout .06s linear 6s forwards}
-#boot .jp{animation:jphide .01s linear 3s forwards}@keyframes jphide{to{visibility:hidden}}   /* 後半は、日本地図を描かない(描画を軽くし、ちらつきを防ぐ) */
+#boot .jp{animation:jphide .5s linear 1.5s forwards}@keyframes jphide{99%{opacity:0}to{opacity:0;visibility:hidden}}   /* 後半は、日本地図を描かない(描画を軽くし、ちらつきを防ぐ) */
 @keyframes bootout{to{opacity:0;visibility:hidden}}
 #boot .bsv{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
 #boot .bwrap{position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:var(--ox,0px) var(--oy,0px);will-change:transform;backface-visibility:hidden}
@@ -15,7 +15,7 @@
   0%{transform:translate(var(--t0x,0px),var(--t0y,0px)) rotate(0deg) scale(var(--s0,.03));animation-timing-function:cubic-bezier(.5,.05,.25,1)}
   50%{transform:translate(var(--tAx,0px),var(--tAy,0px)) rotate(90deg) scale(var(--sA,1));animation-timing-function:cubic-bezier(.45,0,.2,1)}
   100%{transform:translate(var(--tBx,0px),var(--tBy,0px)) rotate(0deg) scale(var(--sB,1))}}
-#boot .jp path{fill:#DCE7E2;stroke:none}#boot .bw{fill:#DCE7E2;stroke:#8FA29A;stroke-width:var(--sw,.01px);stroke-linejoin:round}#boot:not(.go),#boot:not(.go) *{animation-play-state:paused!important}
+#boot .jp path{fill:#DCE7E2;stroke:#DCE7E2;stroke-width:30;stroke-linejoin:round}   /* 県と県のすき間(簡略化で生じる細い黒い欠け)を、同じ色の縁取りで埋める */#boot .bw{fill:#DCE7E2;stroke:#8FA29A;stroke-width:var(--sw,.01px);stroke-linejoin:round}#boot:not(.go),#boot:not(.go) *{animation-play-state:paused!important}
 #boot .bw{opacity:0;animation:bwin .5s ease-out forwards}
 @keyframes bwin{to{opacity:1}}
 #boot .br{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:br .9s ease-in-out forwards}
@@ -28,7 +28,7 @@
 #boot h1{bottom:11vh;margin:0}
 #boot p{bottom:7vh}
 #boot.done{opacity:0!important;pointer-events:none;transition:opacity .35s}
-@media (prefers-color-scheme: dark){#boot .jp path,#boot .bw{fill:#22343A}#boot .bw{stroke:#4E6870}#boot .bd{fill:#E6ECEE;stroke:#121619}}
+@media (prefers-color-scheme: dark){#boot .jp path,#boot .bw{fill:#22343A}#boot .jp path{stroke:#22343A}#boot .bw{stroke:#4E6870}#boot .bd{fill:#E6ECEE;stroke:#121619}}
 @media (prefers-reduced-motion: reduce){#boot{animation-delay:.6s}#boot .cam{animation:none;transform:translate(var(--tBx,0px),var(--tBy,0px)) rotate(0deg) scale(var(--sB,1))}#boot .bw,#boot .bd{animation:none;opacity:1}#boot .br{animation:none;stroke-dashoffset:0}#boot h1,#boot p{animation:none;opacity:0}}
 #boot .bm{display:none}
 #boot .bm i{display:block;width:12px;border-radius:4px;animation:bootbar 1.2s ease-in-out infinite}
@@ -143,7 +143,7 @@ setTimeout(function(){__wd(false);},9000);setTimeout(function(){__wd(true);},400
   --k-food:#E0675A; --k-view:#4FA3C7; --k-hist:#9C80CC; --k-shop:#DE6A9F; --k-other:#8A979C;
   --rc-food:#E58A5E; --rc-cafe:#C79A6B; --rc-spot:#E2678A; --rc-play:#5EC2A8;
   --shadow:0 6px 24px rgba(0,0,0,.45); color-scheme:dark}
-html,body{height:100%}
+html,body{height:100%;overscroll-behavior:none}   /* ブラウザの引っぱり更新・ゴム伸びで画面が揺れないように */
 body{background:var(--sea);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.7;overflow:hidden}
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -1036,7 +1036,7 @@ const _ttSetContent=L.Tooltip.prototype.setContent;L.Tooltip.prototype.setConten
 const __bh=/^#t(\d+)$/.exec(location.hash),__bs=__bh&&STATIONS[+__bh[1]];  // 再読み込み時は、最初から その街の位置で始める（全体地図から飛ばない）
 const __H=(document.getElementById('map')&&document.getElementById('map').clientHeight)||innerHeight;
 const __C=__bs?__bs.ll:L.latLng(window.__V.lat,window.__V.lng);   // 巣鴨(右上)と目白(左下)が画面に収まる位置
-const map=L.map('map',{zoomControl:false,attributionControl:true,minZoom:9,maxZoom:17,zoomSnap:.5}).setView(__C,__bs?16:window.__V.Zo);
+const map=L.map('map',{trackResize:false,zoomControl:false,attributionControl:true,minZoom:9,maxZoom:17,zoomSnap:.5}).setView(__C,__bs?16:window.__V.Zo);
 L.control.zoom({position:'topright'}).addTo(map);
 map.attributionControl.setPrefix(false);
 map.attributionControl.addAttribution('境界：国土数値情報（行政区域）を加工');
@@ -3199,6 +3199,8 @@ function goBack(){
 }
 if(NATIVE){try{window.Capacitor.registerPlugin('App').addListener('backButton',()=>{goBack();});}catch(e){}}
 else{try{history.pushState({e:1},'');addEventListener('popstate',()=>{goBack();try{history.pushState({e:1},'');}catch(e){}});}catch(e){}}
+{let rt=0,lw=innerWidth,lh=innerHeight;   // 地図の大きさの更新: アドレスバーの出入りによる細かい変化では、中心をずらさない(画面が揺れる原因)
+  addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{try{const big=Math.abs(innerWidth-lw)>40;lw=innerWidth;lh=innerHeight;map.invalidateSize({animate:false,pan:false,debounceMoveend:true});if(big)map.invalidateSize({animate:false});}catch(e){}},300);});}
 window.__stage=9;window.__boot=true;setTimeout(()=>{window.__boot=false;},4000);
 let bootReady=false;
 function bootFade(){const b=document.getElementById('boot');if(!b)return;b.style.animation='none';b.classList.add('done');setTimeout(()=>{try{b.remove();}catch(e){}},500);}
