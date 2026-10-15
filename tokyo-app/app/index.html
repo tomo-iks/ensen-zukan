@@ -52,12 +52,17 @@ button{cursor:pointer}
 .leaflet-bar a:hover{background:var(--chip)}
 .leaflet-top.leaflet-right{top:calc(env(safe-area-inset-top,0px) + 96px)}
 @media (min-width:860px){.leaflet-top.leaflet-right{top:calc(env(safe-area-inset-top,0px) + 56px)}}
-.leaflet-tooltip.st-label{background:none;border:0;box-shadow:none;padding:0 2px;font-family:var(--f-disp);font-weight:700;font-size:12px;color:var(--ink);text-shadow:0 0 3px var(--land),0 0 3px var(--land),0 0 2px var(--land)}
+.leaflet-tooltip.st-label{background:none;border:0;box-shadow:none;padding:0 2px;font-family:var(--f-disp);font-weight:700;font-size:15px;color:var(--ink);text-shadow:0 0 3px var(--land),0 0 3px var(--land),0 0 2px var(--land)}
 .leaflet-tooltip.st-label::before{display:none}
-.leaflet-tooltip.muni-label{background:none;border:0;box-shadow:none;padding:0;color:var(--ink2);font-size:11px;letter-spacing:.12em;opacity:.75}
+.leaflet-tooltip.muni-label{background:none;border:0;box-shadow:none;padding:0;color:var(--ink2);font-size:12px;letter-spacing:.12em;opacity:.75}
 .leaflet-tooltip.muni-label::before{display:none}
-.leaflet-tooltip.st-label.sel{font-size:14px;color:var(--accent)}
+.leaflet-tooltip.st-label.sel{font-size:17px;color:var(--accent)}
 .hide-st .st-label{display:none}
+.leaflet-tooltip.st-label.leaflet-tooltip-top,.leaflet-tooltip.st-label.leaflet-tooltip-bottom{padding:8px 10px;margin-left:0}
+.leaflet-tooltip.st-label.leaflet-tooltip-left{padding:10px 6px 10px 12px;margin-left:-2px}
+/* v24: 小さな印も、見えない余白をつけて押しやすくする */
+.recm{position:relative;margin:10px}.recm::after{content:"";position:absolute;inset:-10px;border-radius:50%}
+.pinm::before{content:"";position:absolute;inset:-8px;border-radius:50%;transform:rotate(45deg)}
 .muni-off .muni-label{display:none}
 
 /* 上部バー */
@@ -338,6 +343,9 @@ button.chip[aria-pressed="true"],.ffilter .chip[aria-pressed="true"]{background:
 .recthumb{border-width:1px!important;border-radius:var(--r)!important}
 .pinm{width:26px;height:26px}
 #toast{border-radius:var(--r)}
+#dotkind{position:fixed;z-index:700;display:none;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);padding:9px 14px;border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);color:var(--ink);font:700 14px var(--f-body);box-shadow:var(--shadow)}
+body.maponly #dotkind{display:block}
+@media (min-width:860px){#dotkind{right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 28px)}}
 
 /* 地図のみ表示ボタン：スマホは地図の操作ボタンと同じ形、PCはパネル端のつまみ */
 #maponly{position:fixed;z-index:700;display:flex;align-items:center;gap:4px;background:var(--panel);color:var(--ink);border:1px solid var(--rule);box-shadow:var(--shadow);font-weight:700;font-size:13px}
@@ -359,13 +367,13 @@ button.chip[aria-pressed="true"],.ffilter .chip[aria-pressed="true"]{background:
 
 /* ===== v9: 配色の見直し（長く見ても疲れにくい明るさ、区市3段階、文字のコントラスト）とお散歩 ===== */
 :root{--sea:#E3E5E1;--land:#F7F6F2;--land23:#FBFAF7;--border:#B9C0BB;--muni-on:#E6EFE4;--muni-edge:#94A39A;--muni-sel:#CFE2F3;
-  --park:#C9E3BE;--water:#A9D0E8;--road:#FFFFFF;--road1:#F4DA97;--bldg:#E2E0DA;--bldgline:#CBC7BF;
+  --park:#C9E3BE;--water:#A9D0E8;--road:#FFFFFF;--road1:#F4DA97;--bldg:#CBC4B6;--bldgline:#9E978A;
   --ink:#1F2629;--ink2:#53606A;--rule:#DADFE2;--chip:#F1F3F4;--panel:#FFFFFF;--accent:#2860A8;--walk:#8A3FC4;--ok:#23804C;--want:#B9790D}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--sea:#121619;--land:#1B2125;--land23:#1E252A;--border:#3A454A;--muni-on:#1E2D2A;--muni-edge:#4C5E58;--muni-sel:#21405A;
-  --park:#1E3828;--water:#1B394F;--road:#3A454B;--road1:#6A5A30;--bldg:#293135;--bldgline:#1F2629;
+  --park:#1E3828;--water:#1B394F;--road:#3A454B;--road1:#6A5A30;--bldg:#3B484F;--bldgline:#10171A;
   --ink:#E6ECEE;--ink2:#A6B2B7;--rule:#323C41;--chip:#262E32;--panel:#1B2125;--accent:#8DB8F2;--walk:#C792F2;--jy:#7CC352;--jc:#F07C4E;--ok:#62C38A;--want:#E9B44A}}
 :root[data-theme="dark"]{--sea:#121619;--land:#1B2125;--land23:#1E252A;--border:#3A454A;--muni-on:#1E2D2A;--muni-edge:#4C5E58;--muni-sel:#21405A;
-  --park:#1E3828;--water:#1B394F;--road:#3A454B;--road1:#6A5A30;--bldg:#293135;--bldgline:#1F2629;
+  --park:#1E3828;--water:#1B394F;--road:#3A454B;--road1:#6A5A30;--bldg:#3B484F;--bldgline:#10171A;
   --ink:#E6ECEE;--ink2:#A6B2B7;--rule:#323C41;--chip:#262E32;--panel:#1B2125;--accent:#8DB8F2;--walk:#C792F2;--jy:#7CC352;--jc:#F07C4E;--ok:#62C38A;--want:#E9B44A}
 .leaflet-tooltip.muni-label{color:var(--ink2);opacity:.9}
 #walkbar{position:fixed;z-index:650;left:12px;top:calc(env(safe-area-inset-top,0px) + 112px)}
@@ -465,7 +473,7 @@ button,a,label,[role="button"],.leaflet-interactive{touch-action:manipulation}
 .chip{min-height:30px;padding:5px 11px}
 .back{padding:8px 6px;margin:-8px -6px}
 .seg button,.pill-btn,.seg3 button{min-height:34px}
-.leaflet-tooltip.st-label{pointer-events:auto;cursor:pointer;padding:6px 8px 6px 4px;margin-left:2px}
+.leaflet-tooltip.st-label{pointer-events:auto;cursor:pointer;padding:10px 12px 10px 6px;margin-left:2px}
 .leaflet-tooltip.muni-label{pointer-events:auto;cursor:pointer;padding:6px 8px}
 .leaflet-container a.leaflet-popup-close-button{width:36px;height:36px;font-size:20px;line-height:36px}
 @media (max-width:859px){body:not(.maponly) #maponly{right:64px}}  /* v18: 40pxの地図ボタンと重ならないよう左へ */
@@ -866,7 +874,8 @@ L.Tooltip.prototype._setPosition=function(pos){
   ['right','left','top','bottom'].forEach(d=>L.DomUtil.removeClass(el,'leaflet-tooltip-'+d));L.DomUtil.addClass(el,'leaflet-tooltip-'+dir);L.DomUtil.setPosition(el,pos);
 };
 const _ttSetContent=L.Tooltip.prototype.setContent;L.Tooltip.prototype.setContent=function(c){if(this._container)this._container._sz=null;return _ttSetContent.call(this,c);};
-const map=L.map('map',{zoomControl:false,attributionControl:true,minZoom:9,maxZoom:17,zoomSnap:.5}).setView([35.69,139.6],11);
+const __bh=/^#t(\d+)$/.exec(location.hash),__bs=__bh&&STATIONS[+__bh[1]];  // 再読み込み時は、最初から その街の位置で始める（全体地図から飛ばない）
+const map=L.map('map',{zoomControl:false,attributionControl:true,minZoom:9,maxZoom:17,zoomSnap:.5}).setView(__bs?__bs.ll:[35.69,139.6],__bs?16:11);
 L.control.zoom({position:'topright'}).addTo(map);
 map.attributionControl.setPrefix(false);
 map.attributionControl.addAttribution('境界：国土数値情報（行政区域）を加工');
@@ -875,7 +884,7 @@ map.createPane('rail');map.getPane('rail').style.zIndex=410;
 map.createPane('guess');map.getPane('guess').style.zIndex=420;
 
 const muniLayer=L.geoJSON(MUNI,{pane:'muni',style:f=>({color:css('--border'),weight:1,fillColor:f.properties.ku?css('--land23'):css('--land'),fillOpacity:1}),interactive:false}).addTo(map);
-const muniByName={};
+const muniByName={},MUNI_TIPS=[];
 // 路線が通る区市：駅の所在地＋線路を細かくたどって通過する区市
 function inRing(pt,r){let c=false;for(let i=0,j=r.length-1;i<r.length;j=i++){const [xi,yi]=r[i],[xj,yj]=r[j];if((yi>pt[0])!==(yj>pt[0])&&pt[1]<(xj-xi)*(pt[0]-yi)/(yj-yi)+xi)c=!c;}return c;}
 function muniAt(pt){for(const f of MUNI.features){const g=f.geometry,ps=g.type==='Polygon'?[g.coordinates]:g.coordinates;
@@ -883,7 +892,7 @@ function muniAt(pt){for(const f of MUNI.features){const g=f.geometry,ps=g.type==
 const LINE_MUNI=new Set(STATIONS.map(s=>s.m));
 muniLayer.eachLayer(l=>{const n=l.feature.properties.n;muniByName[n]=l;
   const c=l.getBounds().getCenter();
-  const tt=L.tooltip({permanent:true,direction:'center',className:'muni-label',interactive:true}).setLatLng(c).setContent(n).addTo(map);
+  const tt=L.tooltip({permanent:true,direction:'center',className:'muni-label',interactive:true}).setLatLng(c).setContent(n).addTo(map);MUNI_TIPS.push({n,tt,c});
   // 区市の名前を押すと、その区市に寄って光らせる（v15）
   L.DomEvent.on(tt.getElement(),'click',e=>{L.DomEvent.stop(e);if(quiz&&quiz.mode==='pos'&&!quiz.answered)return;map.fitBounds(l.getBounds(),fitPad());
     const el=l.getElement();if(el){el.classList.remove('muni-flash');void el.getBoundingClientRect();el.classList.add('muni-flash');}});
@@ -906,6 +915,7 @@ const rails={
 [linePts(YAMANOTE,true),linePts(CHUO,false)].forEach(pts=>{for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],n=Math.ceil(km(a,b)/.1);
   for(let k=0;k<=n;k++){const m=muniAt([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);if(m)LINE_MUNI.add(m);}}});
 
+const TOUCH=matchMedia('(pointer:coarse)').matches,TP=TOUCH?26:16;  // v24: 指で押す端末では、反応する範囲を広げる
 const markers={},hits={};
 // 駅の表示位置：駅の座標にいちばん近い線路上の点（300m以内のときだけ寄せる）
 function snapLL(s){
@@ -922,13 +932,63 @@ STATIONS.forEach(s=>{
   const at=snapLL(s);s.at=at;
   const m=L.circleMarker(at,{pane:'markerPane',radius:dotR(),weight:1.5,bubblingMouseEvents:false});
   m.bindTooltip(s.n,{permanent:true,direction:'right',offset:[4,0],className:'st-label'});
-  const h=L.circleMarker(at,{pane:'markerPane',radius:18,stroke:false,fillOpacity:0,bubblingMouseEvents:false});
+  const h=L.circleMarker(at,{pane:'markerPane',radius:TOUCH?26:18,stroke:false,fillOpacity:0,bubblingMouseEvents:false});
   const click=e=>{if(quiz&&quiz.i<quiz.qs.length) return; if(pinView&&pinView.mode==='pick'){pickAt(e.latlng);return;} if(town){if(s.n!==town)enterTown(s.n);return;} openStation(s.n);};
   m.on('click',click);h.on('click',click);
   m.addTo(map);h.addTo(map);markers[s.n]=m;hits[s.n]=h;
   // 駅名の文字を押しても選べるようにする（v15）
   const te=m.getTooltip().getElement();te.classList.add('leaflet-interactive');L.DomEvent.on(te,'click',e=>{L.DomEvent.stop(e);click({latlng:L.latLng(s.ll)});});
 });
+// v24: 駅名どうしが重ならないように、点の右・上・下・左から空いている位置を選ぶ（中央線のように駅が一直線に並ぶ区間で重なるため）
+// その駅での路線の向き（前後の駅を結ぶ線の向き）を、画面上の座標で返す
+function lineDir(s){
+  const ln=s.lines&&s.lines[0];if(!ln||!LN[ln.l])return null;
+  const list=LN[ln.l].list,i=list.indexOf(s.n);if(i<0)return null;
+  const loop=ln.l==='jy',a=loop?list[(i-1+list.length)%list.length]:list[i-1],b=loop?list[(i+1)%list.length]:list[i+1];
+  const A=BY[a||s.n],B=BY[b||s.n];if(!A||!B)return null;
+  const pa=map.latLngToContainerPoint(A.ll),pb=map.latLngToContainerPoint(B.ll);
+  return {x:pb.x-pa.x,y:pb.y-pa.y};
+}
+function layoutLabels(){
+  if(typeof markers==='undefined'||map.getZoom()<12.5)return;
+  const z=map.getZoom(),r0=dotR(),placed=[],P={};
+  const ov=(a,b)=>a.x<b.x+b.w&&b.x<a.x+a.w&&a.y<b.y+b.h&&b.y<a.y+a.h;
+  const order=STATIONS.slice().sort((a,b)=>(b.n===sel)-(a.n===sel));
+  for(const s of order){const m=markers[s.n];if(!m)continue;const p=map.latLngToContainerPoint(m.getLatLng());P[s.n]=p;
+    placed.push({x:p.x-r0-1,y:p.y-r0-1,w:2*r0+2,h:2*r0+2,d:s.n});}
+  // v24: 文字は、重ならない範囲でできるだけ大きく（大→小の順に試して、置けた大きさにする。最小は12px）
+  const SIZES=z<13.5?[15,14,13,12]:[17,16,15,14,13,12],PAD=8,g=r0+3;
+  const area=(rc,self)=>placed.reduce((a,q)=>{if(q.d===self||!ov(rc,q))return a;return a+(Math.min(rc.x+rc.w,q.x+q.w)-Math.max(rc.x,q.x))*(Math.min(rc.y+rc.h,q.y+q.h)-Math.max(rc.y,q.y));},0);
+  for(const s of order){
+    const m=markers[s.n],t=m&&m.getTooltip(),p=P[s.n];if(!t||!p)continue;
+    const el=t.getElement(),big=s.n===sel;
+    // 路線が横向きの駅は、文字が線の上に乗らないよう上下に置く（隣の駅と交互にして、並びを崩さない）。縦向きの駅は左右に置く。
+    const o=lineDir(s),horiz=o&&Math.abs(o.x)>=Math.abs(o.y)*.7;
+    const pref=horiz?(s.lines&&s.lines[0]&&s.lines[0].no%2?['top','bottom','right','left','ru','rd','lu','ld']:['bottom','top','right','left','rd','ru','ld','lu']):['right','left','top','bottom','ru','rd','lu','ld'];
+    let best=null;
+    for(const base of SIZES){
+      const fs=base+(big?2:0),w=s.n.length*fs+6,h=fs+5,dy=h-2;
+      const C={right:['right',[4,0],{x:p.x+12,y:p.y-h/2}],top:['top',[0,PAD-r0+3],{x:p.x-w/2,y:p.y-g-h}],bottom:['bottom',[0,-(PAD-r0+3)],{x:p.x-w/2,y:p.y+g}],left:['left',[-4,0],{x:p.x-12-w,y:p.y-h/2}],
+        ru:['right',[4,-dy],{x:p.x+12,y:p.y-h/2-dy}],rd:['right',[4,dy],{x:p.x+12,y:p.y-h/2+dy}],lu:['left',[-4,-dy],{x:p.x-12-w,y:p.y-h/2-dy}],ld:['left',[-4,dy],{x:p.x-12-w,y:p.y-h/2+dy}]};
+      let pick=null,pa=1e18;
+      for(const k of pref){const c=C[k],ar=area({x:c[2].x,y:c[2].y,w,h},s.n);if(ar<pa){pa=ar;pick=c;if(ar===0)break;}}
+      if(!best||pa<best.pa)best={fs,pick,pa,w,h};
+      if(pa===0)break;
+    }
+    placed.push({x:best.pick[2].x,y:best.pick[2].y,w:best.w,h:best.h,d:s.n});
+    if(el&&el.style.fontSize!==best.fs+'px'){el.style.fontSize=best.fs+'px';}
+    const key=best.pick[0]+','+best.pick[1][0]+','+best.pick[1][1];
+    if(t.__pos!==key){t.__pos=key;t.options.direction=best.pick[0];t.options.offset=L.point(best.pick[1][0],best.pick[1][1]);t.update();}
+  }
+  // 区市名などの地名は、駅名や点、ほかの地名と重なるものを隠す
+  const mr=[];
+  for(const mt of MUNI_TIPS){const el=mt.tt.getElement();if(!el)continue;
+    const c=map.latLngToContainerPoint(mt.c),w=mt.n.length*15+4,h=17,rc={x:c.x-w/2,y:c.y-h/2,w,h,d:'~'+mt.n};
+    const hide=placed.some(q=>ov(rc,q))||mr.some(q=>ov(rc,q));
+    el.style.visibility=hide?'hidden':'';
+    if(!hide)mr.push(rc);
+  }
+}
 function styleMarkers(){
   const hide=quiz&&quiz.mode==='pos'&&!quiz.answered;
   STATIONS.forEach(s=>{
@@ -940,6 +1000,7 @@ function styleMarkers(){
     const t=m.getTooltip(); if(t&&t.getElement()){const el=t.getElement();if(el.classList.contains('sel')!==(s.n===sel)){el._sz=null;el.classList.toggle('sel',s.n===sel);t.update();}el.style.opacity=hide?0:(on?1:.3);el.style.pointerEvents=hide?'none':'';}
   });
   rails.jy.setStyle({opacity:line==='jc'?.2:.95});rails.jc.setStyle({opacity:line==='jy'?.2:.95});
+  try{layoutLabels();}catch(e){console.warn('layoutLabels',e);}
   const selM=sel&&!town&&!hide?BY[sel].m:null;
   muniLayer.eachLayer(l=>{const n=l.feature.properties.n,hl=n===selM,on=LINE_MUNI.has(n)&&!hide;
     l.setStyle({color:on?css('--muni-edge'):css('--border'),weight:hl?2:on?1.2:1,
@@ -973,17 +1034,24 @@ function focusOn(ll,z){
   z=z||Math.max(map.getZoom(),14);
   const p=map.project(ll,z),ps=panelSize();
   if(isWide()) p.x-=(ps.w+16)/2; else p.y+=ps.h/2-50;
+  if(window.__boot){map.setView(map.unproject(p,z),z,{animate:false});return;}  // v24: 起動直後は、飛ばずに最終の位置から始める
   map.flyTo(map.unproject(p,z),z,{duration:.6});
 }
 function fitAll(){
   const b=L.latLngBounds(pool().map(s=>s.ll)),ps=panelSize();
-  map.fitBounds(b,isWide()?{paddingTopLeft:[ps.w+40,90],paddingBottomRight:[40,40]}:{paddingTopLeft:[20,110],paddingBottomRight:[20,ps.h+20]});
+  map.fitBounds(b,Object.assign({animate:!window.__boot},isWide()?{paddingTopLeft:[ps.w+40,90],paddingBottomRight:[40,40]}:{paddingTopLeft:[20,110],paddingBottomRight:[20,ps.h+20]}));
 }
 
 // ---------- パネル ----------
 const body=document.getElementById('pbody'),panel=document.getElementById('panel');
 document.getElementById('handle').onclick=()=>panel.classList.toggle('collapsed');
 // 地図だけ表示：パネルと上部バーを引っ込める。スマホはパネルを下へスワイプでも閉じられる
+// v24: 地図のみの表示で、点の種類をボタン1つで切り替える（すべて → 食事だけ → 遊び場だけ）
+const DOTKINDS=[['all','点：すべて'],['food','点：食事だけ'],['play','点：遊び場だけ']];
+const dotKindBtn=document.createElement('button');dotKindBtn.id='dotkind';dotKindBtn.type='button';document.body.appendChild(dotKindBtn);
+function paintDotKind(){const k=S.ui.dotKind||'all';dotKindBtn.textContent=(DOTKINDS.find(x=>x[0]===k)||DOTKINDS[0])[1];}
+paintDotKind();
+dotKindBtn.onclick=()=>{const i=DOTKINDS.findIndex(x=>x[0]===(S.ui.dotKind||'all'));S.ui.dotKind=DOTKINDS[(i+1)%DOTKINDS.length][0];save();paintDotKind();dotKey='';if(typeof refreshRecs==='function')refreshRecs();};
 function setMapOnly(on){document.body.classList.toggle('maponly',on);const b=document.getElementById('maponly');
   b.setAttribute('aria-pressed',on);b.setAttribute('aria-label',on?'パネルを表示':'地図のみ表示');
   b.innerHTML=on?'<span class="chev">›</span><span class="tx">パネルを表示</span>':'<span class="chev">‹</span><span class="tx">地図のみ</span>';}
@@ -1113,7 +1181,7 @@ function setLine(l){line=l;['all','jy','jc'].forEach(x=>document.getElementById(
 ['all','jy','jc'].forEach(x=>document.getElementById('ln-'+x).onclick=()=>setLine(x));
 
 // ---------- クイズ ----------
-const MODES={pos:{t:'位置当て',d:'駅名が出るので、地図上の場所をタップ'},feat:{t:'特徴当て',d:'街の説明文から駅名を4択で'},muni:{t:'所属当て',d:'その駅がある区・市を4択で'},mix:{t:'ミックス',d:'3種類からランダムに出題'}};
+const MODES={feat:{t:'特徴当て',d:'街の説明文から、駅名を4択で'},spot:{t:'見どころ当て',d:'見どころの一覧から、駅名を4択で'},hist:{t:'成り立ち当て',d:'成り立ち・地名の説明から、駅名を4択で'},mix:{t:'ミックス',d:'3種類からランダムに出題'}};
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
 function km(a,b){const R=6371,r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r,x=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x));}
 function mask(s){let t=s.d;[s.n,...(s.x||[])].sort((a,b)=>b.length-a.length).forEach(w=>{t=t.split(w).join('○○');});return t;}
@@ -1122,17 +1190,15 @@ function clearGuess(){guessLayer.clearLayers();}
 
 function startQuiz(mode){
   const qs=shuffle(pool()).slice(0,5).map(s=>{
-    const m=mode==='mix'?['pos','feat','muni'][Math.random()*3|0]:mode;
-    let opts=null;
-    if(m==='feat') opts=shuffle([s.n,...shuffle(pool().filter(x=>x.n!==s.n)).slice(0,3).map(x=>x.n)]);
-    if(m==='muni'){const near=STATIONS.slice().sort((a,b)=>km(a.ll,s.ll)-km(b.ll,s.ll)).map(x=>x.m);
-      const ds=[...new Set(near)].filter(x=>x!==s.m).slice(0,3);opts=shuffle([s.m,...ds]);}
+    const m=mode==='mix'?['feat','spot','hist'][Math.random()*3|0]:mode;
+    const opts=shuffle([s.n,...shuffle(pool().filter(x=>x.n!==s.n)).slice(0,3).map(x=>x.n)]);
     return {s,m,opts,score:null};
   });
   quiz={mode,qs,i:0,answered:false};sel=null;
-  if(qs[0].m==='pos'){fitAll();}
   renderQuiz();
 }
+// 問題文の中の駅名（と別名）を「○○」に伏せる
+function maskT(s,txt){let t=txt||'';[s.n,...(s.x||[])].sort((a,b)=>b.length-a.length).forEach(w=>{t=t.split(w).join('○○');});return t;}
 function curQ(){return quiz.qs[quiz.i];}
 function renderQuiz(){
   if(!quiz){
@@ -1146,28 +1212,27 @@ function renderQuiz(){
   if(quiz.i>=quiz.qs.length) return renderResult();
   const q=curQ(),s=q.s,total=quiz.qs.reduce((a,x)=>a+(x.score||0),0);
   let html=`<div class="qhead"><span>${MODES[quiz.mode].t}</span><span><span class="qnum">${quiz.i+1}</span> / 5　計 <span class="qnum">${total}</span></span></div>`;
-  if(q.m==='pos'){
-    html+=`<div class="prompt">${s.n}<span class="kana" style="margin-left:8px">${s.k}</span></div>`;
-    html+=quiz.answered?fbPos(q):`<p class="qs" style="margin:0">地図でこの駅の場所をタップ。ピンと駅名は隠しています（4km以上ずれると0点）。</p>`;
-  }else{
-    html+=q.m==='feat'?`<div class="qtext">${mask(s)}</div><p class="qs" style="margin:0">○○に入る駅は？</p>`:`<div class="prompt">${s.n}駅があるのは？</div>`;
-    html+=`<div class="opts">${q.opts.map(o=>{const ans=q.m==='feat'?s.n:s.m;let c='';if(quiz.answered){if(o===ans)c='right';else if(o===q.pick)c='wrong';}
+  {
+    const txt=q.m==='spot'?`見どころ：${s.s.map(x=>maskT(s,x)).join('　/　')}`:q.m==='hist'?maskT(s,s.h):mask(s);
+    const ask=q.m==='spot'?'この見どころがある駅は？':q.m==='hist'?'この成り立ちの駅は？':'○○に入る駅は？';
+    html+=`<div class="qtext">${txt}</div><p class="qs" style="margin:0">${ask}</p>`;
+    html+=`<div class="opts">${q.opts.map(o=>{let c='';if(quiz.answered){if(o===s.n)c='right';else if(o===q.pick)c='wrong';}
       return `<button class="opt ${c}" data-o="${o}" ${quiz.answered?'disabled':''}>${o}</button>`;}).join('')}</div>`;
-    if(quiz.answered) html+=`<div class="fb">${q.score?'正解！':'残念。正解は「'+(q.m==='feat'?s.n:s.m)+'」'}${s.note&&q.m==='muni'?'<br><span class="qs">'+s.note+'</span>':''}</div>`;
+    if(quiz.answered) html+=`<div class="fb">${q.score?'正解！':'残念。正解は「'+s.n+'」'}</div>`;
   }
   if(quiz.answered) html+=`<button class="primary" id="next">${quiz.i<4?'次の問題':'結果を見る'}</button><button class="ghost" id="peek" aria-expanded="false">この街の解説を読む</button><div id="peekbox" hidden><div class="sec"><h3>どんな街か</h3><p>${s.d}</p></div><div class="sec"><h3>成り立ち・地名${s.hc?'<span class="flag">諸説あり</span>':''}</h3><p>${s.h}</p></div></div>`;
   html+=`<button class="ghost" id="quit">やめる</button>`;
   body.innerHTML=html;
   body.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>answerChoice(b.dataset.o));
-  const nx=body.querySelector('#next');if(nx)nx.onclick=()=>{quiz.i++;quiz.answered=false;clearGuess();if(quiz.i<5&&curQ().m==='pos')fitAll();renderQuiz();};
+  const nx=body.querySelector('#next');if(nx)nx.onclick=()=>{quiz.i++;quiz.answered=false;clearGuess();renderQuiz();};
   const pk=body.querySelector('#peek');if(pk)pk.onclick=()=>{const bx=body.querySelector('#peekbox');bx.hidden=!bx.hidden;pk.setAttribute('aria-expanded',!bx.hidden);pk.textContent=bx.hidden?'この街の解説を読む':'解説を閉じる';};
   body.querySelector('#quit').onclick=()=>{quiz=null;clearGuess();renderQuiz();};
   styleMarkers();zoomLabels();refreshPins();refreshRecs();
 }
 function fbPos(q){return `<div class="fb">ずれ <b>${q.dist.toFixed(1)}</b> km　→　<b>${q.score}</b> 点<br><span class="qs">${q.s.m}・${q.s.c}</span></div>`;}
 function stat(n,ok){const x=S.qs[n]||(S.qs[n]={ok:0,ng:0});ok?x.ok++:x.ng++;}
-function answerChoice(o){const q=curQ(),ans=q.m==='feat'?q.s.n:q.s.m;q.pick=o;q.score=o===ans?100:0;stat(q.s.n,!!q.score);quiz.answered=true;save();
-  if(q.m==='feat'||q.m==='muni'){sel=null;styleMarkers();focusOn(q.s.ll,Math.max(map.getZoom(),12.5));}renderQuiz();}
+function answerChoice(o){const q=curQ(),ans=q.s.n;q.pick=o;q.score=o===ans?100:0;stat(q.s.n,!!q.score);quiz.answered=true;save();
+  sel=null;styleMarkers();focusOn(q.s.ll,Math.max(map.getZoom(),12.5));renderQuiz();}
 map.on('click',e=>{
   if(pinView&&pinView.mode==='pick'){pickAt(e.latlng);return;}
   if(!quiz||quiz.answered||quiz.i>=5||curQ().m!=='pos')return;
@@ -1278,7 +1343,7 @@ async function compress(file){
 // 詳細地図（建物・道路・公園・川）。tiles/ の区画ファイルを、表示している範囲だけ読み込む
 // v13: 図形を地図に直接載せると動かすたびに全部を描き直して固まるため、256pxの画像タイル（GridLayer）に一度だけ描いて使い回す。
 //      区画の図形は読み込み時に一度だけ座標を展開し、小さな格子で索引を付けて、タイルに必要な分だけ描く。描画は少しずつ分けて進める
-const TILESET=new Set(TILE_KEYS),TDLAT=.025,TDLNG=.03125,DETAIL_Z=15,TGRID=8;
+const TILESET=new Set(TILE_KEYS),TDLAT=.025,TDLNG=.03125,DETAIL_Z=14,SPOT_Z=15,TGRID=8;
 const tkey=(lat,lng)=>Math.floor(lat/TDLAT)+'_'+Math.floor(lng/TDLNG);
 const tileData={},tileState={},tileWait={};
 const hasDetail=n=>TILESET.has(tkey(...BY[n].ll));
@@ -1303,7 +1368,39 @@ function indexTile(k,D){
   }
   return {o0,o1,R};
 }
-window.ENSEN_TILE=(k,D)=>{tileData[k]=indexTile(k,D);tileState[k]='ok';(tileWait[k]||[]).forEach(f=>f());delete tileWait[k];};
+// v24: 区画データの展開を、少しずつ分けて進める（1つの区画で数百ミリ秒止まるため）
+function indexTileAsync(k,D,done){
+  const [i,j]=k.split('_').map(Number),o0=i*TDLAT,o1=j*TDLNG,R={};
+  let ki=0,fi=0,cur=null;
+  const ci=v=>Math.max(0,Math.min(TGRID-1,Math.floor(v)));
+  const step=()=>{
+    const t0=performance.now();
+    while(ki<DKINDS.length){
+      const n=DKINDS[ki],fs=D[n]||[];
+      if(!cur){cur={items:[],cells:Array.from({length:TGRID*TGRID},()=>[])};fi=0;}
+      const items=cur.items,cells=cur.cells;
+      while(fi<fs.length){
+        const f=fs[fi++];
+        const a=new Float64Array(f.length);let x=0,y=0,s=90,w=180,nn=-90,ee=-180;
+        for(let q=0;q<f.length;q+=2){x+=f[q];y+=f[q+1];const la=o0+y/1e5,lo=o1+x/1e5;a[q]=la;a[q+1]=lo;if(la<s)s=la;if(la>nn)nn=la;if(lo<w)w=lo;if(lo>ee)ee=lo;}
+        const it={a,s,w,n:nn,e:ee,id:items.length};items.push(it);
+        for(let r=ci((s-o0)/TDLAT*TGRID);r<=ci((nn-o0)/TDLAT*TGRID);r++)for(let c=ci((w-o1)/TDLNG*TGRID);c<=ci((ee-o1)/TDLNG*TGRID);c++)cells[r*TGRID+c].push(it);
+        if(performance.now()-t0>10){setTimeout(step,0);return;}
+      }
+      R[n]=cur;cur=null;ki++;
+    }
+    done({o0,o1,R});
+  };
+  step();
+}
+window.ENSEN_TILE=(k,D)=>indexTileAsync(k,D,T=>{tileData[k]=T;tileState[k]='ok';(tileWait[k]||[]).forEach(f=>f());delete tileWait[k];});
+// v24: 見えている範囲より広く先読みする。区画データは周囲の8区画、地図の絵は上下左右に1枚ぶん外側まで
+function prefetchTiles(){
+  if(map.getZoom()<DETAIL_Z-1)return;
+  const c=map.getCenter(),i=Math.floor(c.lat/TDLAT),j=Math.floor(c.lng/TDLNG);
+  for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const k=(i+a)+'_'+(j+b);if(TILESET.has(k)&&!tileData[k]&&!tileState[k])loadTile(k);}
+}
+map.on('moveend zoomend',()=>{(window.requestIdleCallback||(f=>setTimeout(f,200)))(prefetchTiles);});
 function loadTile(k,cb){
   if(tileData[k]){cb&&cb();return;}
   if(cb)(tileWait[k]=tileWait[k]||[]).push(cb);
@@ -1314,11 +1411,11 @@ function loadTile(k,cb){
 const dStyleMemo={};
 function dStyles(z){if(dStyleMemo[z])return dStyleMemo[z];return dStyleMemo[z]=dStyles0(z);}
 function dStyles0(z){
-  const b=z>=16;
+  const b=z>=15;
   return [['g','fill',{f:css('--park')}],['w','fill',{f:css('--water')}],['wl','line',{c:css('--water'),lw:4}],
     ['r2','line',{c:css('--bldgline'),lw:6}],['r1','line',{c:css('--bldgline'),lw:9}],['r3','line',{c:css('--road'),lw:2.5}],
     ['r2','line',{c:css('--road'),lw:4}],['r1','line',{c:css('--road1'),lw:7}],
-    ['b','fill',{f:css('--bldg'),c:b?css('--bldgline'):null,lw:.7}],['rl','line',{c:css('--ink2'),lw:2,dash:[7,5]}]];
+    ['b','fill',{f:css('--bldg'),c:b?css('--bldgline'):null,lw:.8}],['rl','line',{c:css('--ink2'),lw:2,dash:[7,5]}]];
 }
 // 描画待ちのタイルを、1フレーム約8msずつ処理する（固まらないように）
 const drawQ=[];let drawing=false;
@@ -1330,9 +1427,11 @@ function pumpDraw(){
   requestAnimationFrame(step);
 }
 const DetailLayer=L.GridLayer.extend({
+  // 見えている範囲より1枚ぶん外側まで読み込んで、地図を動かしたときに待たせない（v24）
+  _getTiledPixelBounds(center){const b=L.GridLayer.prototype._getTiledPixelBounds.call(this,center),s=this.getTileSize();return L.bounds(b.min.subtract(s),b.max.add(s));},
   createTile(co,done){
     const ck='d'+co.z+'/'+co.x+'/'+co.y,hit=tcGet(ck);if(hit&&!hit.isConnected){setTimeout(()=>done(null,hit),0);return hit;}
-    const size=this.getTileSize(),dpr=Math.min(co.z>=16?2:1.5,window.devicePixelRatio||1),cv=document.createElement('canvas');cv._ck=ck;
+    const size=this.getTileSize(),dpr=Math.min(co.z>=16?2:co.z>=15?1.5:1,window.devicePixelRatio||1),cv=document.createElement('canvas');cv._ck=ck;
     cv.width=size.x*dpr;cv.height=size.y*dpr;
     const nw=map.unproject(co.scaleBy(size),co.z),se=map.unproject(co.add([1,1]).scaleBy(size),co.z);
     const keys=[];for(let i=Math.floor(se.lat/TDLAT);i<=Math.floor(nw.lat/TDLAT);i++)for(let j=Math.floor(nw.lng/TDLNG);j<=Math.floor(se.lng/TDLNG);j++){const k=i+'_'+j;if(TILESET.has(k))keys.push(k);}
@@ -1379,7 +1478,7 @@ function refreshPins(){
   if(quiz&&quiz.i<quiz.qs.length)return;
   PINS.forEach(p=>{if(draft&&draft.id===p.id)return;
     const m=L.marker([p.lat,p.lng],{icon:pinIcon(p.kind),title:p.title,keyboard:true,bubblingMouseEvents:false});
-    m.on('click',()=>{if(pinView&&pinView.mode==='pick')return;if(town===p.town){pinView={mode:'detail',id:p.id};render();body.scrollTop=0;}else enterTown(p.town,p.id);});
+    m.on('click',()=>{if(pinView&&pinView.mode==='pick')return;setMapOnly(false);panel.classList.remove('collapsed');if(town===p.town){pinView={mode:'detail',id:p.id};render();body.scrollTop=0;}else enterTown(p.town,p.id);});
     m.addTo(pinLayer);});
 }
 
@@ -1630,10 +1729,10 @@ const recsFor=t=>RECS.filter(r=>(!t||r.town===t)&&(r.s==='all'||r.s===season));
 const seasonHas=x=>RECS.some(r=>r.s===x);
 const recLayer=L.layerGroup().addTo(map);
 map.createPane('dots');map.getPane('dots').style.zIndex=450;
-const dotCanvas=L.canvas({pane:'dots',padding:.3}),PLAY2SPOT={park:'park',museum:'museum',stage:'stage',sauna:'bath',amuse:'play',exp:'play',shop:'shop'};
+const dotCanvas=L.canvas({pane:'dots',padding:.3,tolerance:TOUCH?16:6}),PLAY2SPOT={park:'park',museum:'museum',stage:'stage',sauna:'bath',amuse:'play',exp:'play',shop:'shop'};
 // 遊び場の点の色：寺社・史跡・名所はスポットの「観光名所」の赤、そのほかは種類に合わせる
 const playSpot=p=>/寺|神社|神宮|稲荷|八幡|天満|名所|史跡|記念碑|展望|教会|聖堂|城/.test(p.g+p.n)&&p.big==='park'?'tour':(PLAY2SPOT[p.big]||'tour');
-const recIcon=c=>L.divIcon({className:'',iconSize:[14,14],iconAnchor:[7,7],html:`<div class="recm rc-${c}"><span>${RCATS[c].t}</span></div>`});
+const recIcon=c=>L.divIcon({className:'',iconSize:[34,34],iconAnchor:[17,17],html:`<div class="recm rc-${c}"><span>${RCATS[c].t}</span></div>`});
 // v18: 点は一度だけ作って使い回す（以前はズームのたびに約2,300個を作り直していて重かった）
 let dotLayer=null,recKey='';
 function buildDots(){
@@ -1655,11 +1754,12 @@ function fitMatches(kind){
 function dotMode(){return town&&townTab==='food'?'food':town&&townTab==='play'?'play':null;}
 function styleDots(){
   const mode=dotMode(),sel=pinView&&(pinView.mode==='shop'||pinView.mode==='play')?pinView.id:null;
-  const key=[mode,town,sel,markVer,mode==='food'?JSON.stringify(FF):mode==='play'?JSON.stringify(PF):''].join('|');
+  const dk=S.ui.dotKind||'all';
+  const key=[mode,town,sel,markVer,dk,mode==='food'?JSON.stringify(FF):mode==='play'?JSON.stringify(PF):''].join('|');
   if(key===dotKey||!dotLayer)return;dotKey=key;
   const accent=css('--accent'),panel=css('--panel');
   dotAll.forEach(m=>{
-    const d=m._d,ok=!mode?true:mode==='food'?m._t==='s'&&shopMatch(d):m._t==='p'&&playMatch(d),isSel=d.id===sel;
+    const d=m._d,ok=!mode?(dk==='all'||(dk==='food'?m._t==='s':m._t==='p')):mode==='food'?m._t==='s'&&shopMatch(d):m._t==='p'&&playMatch(d),isSel=d.id===sel;
     const mk=markOf(d.id),st=(!ok&&!isSel?'off':isSel?'sel':mode?'hi':'n')+(mk?'-'+mk:'');
     if(m._st===st)return;m._st=st;
     if(st.startsWith('off')){if(dotLayer.hasLayer(m))dotLayer.removeLayer(m);return;}
@@ -1674,17 +1774,20 @@ function styleDots(){
   if(sd)L.marker(sd.getLatLng(),{icon:L.divIcon({className:'',iconSize:[44,44],iconAnchor:[22,22],html:'<div class="selpulse"></div>'}),interactive:false,keyboard:false,zIndexOffset:-500}).addTo(selLayer);
 }
 function refreshRecs(){
-  const show=showRec&&!(quiz&&quiz.i<quiz.qs.length)&&(!!town||map.getZoom()>=13),key=show+'|'+season;
+  const quizOn=!!(quiz&&quiz.i<quiz.qs.length),zz=map.getZoom();
+  const show=showRec&&!quizOn&&(!!town||zz>=13),key=show+'|'+season;   // 季節のおすすめのピン
+  const showDots=!quizOn&&(show||!!town||zz>=15);                         // v24: 店・遊び場の点は、拡大15以上では押さなくても出す
   const focus=!!dotMode();
   if(key+focus!==recKey){recKey=key+focus;recLayer.clearLayers();
     if(show&&!focus)recsFor(null).forEach(r=>{const m=L.marker(r.ll,{icon:recIcon(r.cat),title:r.n,bubblingMouseEvents:false,zIndexOffset:-200});
       m.on('click',e=>{if(pinView&&pinView.mode==='pick'){pickAt(e.latlng);return;}openRec(r.id);});m.addTo(recLayer);});}
-  if(show){if(!dotLayer)buildDots();if(!map.hasLayer(dotLayer))dotLayer.addTo(map);styleDots();}
+  if(showDots){if(!dotLayer)buildDots();if(!map.hasLayer(dotLayer))dotLayer.addTo(map);styleDots();}
   else{if(dotLayer&&map.hasLayer(dotLayer))map.removeLayer(dotLayer);selLayer.clearLayers();dotKey='';}
 }
 map.on('zoomend',refreshRecs);
 function openRec(id){
   const r=RECS.find(x=>x.id===id);if(!r)return;
+  setMapOnly(false);panel.classList.remove('collapsed');
   if(town!==r.town)enterTown(r.town);
   townTab='rec';pinView={mode:'rec',id};render();body.scrollTop=0;focusOn(r.ll,Math.max(map.getZoom(),16));
 }
@@ -1780,6 +1883,7 @@ function wireFood(){
 }
 function openShop(id){
   const s=SHOPS.find(x=>x.id===id);if(!s)return;
+  setMapOnly(false);panel.classList.remove('collapsed');
   const keepAll=FF.all;
   if(town!==s.town)enterTown(s.town);
   FF.all=keepAll;townTab='food';pinView={mode:'shop',id};render();body.scrollTop=0;
@@ -1866,6 +1970,7 @@ function wirePlay(){
 }
 function openPlay(id){
   const p=PLAYS.find(x=>x.id===id);if(!p)return;
+  setMapOnly(false);panel.classList.remove('collapsed');
   const keepAll=PF.all;
   if(town!==p.town)enterTown(p.town);
   PF.all=keepAll;townTab='play';pinView={mode:'play',id};render();body.scrollTop=0;
@@ -2004,24 +2109,139 @@ function walkStations(w){const out=[];w.pts.forEach(q=>STATIONS.forEach(s=>{if(!
 
 // ---------- お散歩の記録 ----------
 // 位置情報で歩いた経路を記録する。Claude 上の Artifact では位置情報が使えないため、GitHub Pages 版を案内する
-const PAGES_URL='https://1126090k-ai.github.io/AI-/';
+const PAGES_URL='https://tomo-iks.github.io/ensen-zukan/tokyo-app/app/';
+// v24: Androidアプリ（Capacitor）では、画面を消してもお散歩の位置情報を取り続ける（フォアグラウンドサービス）
+var NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+var BG=NATIVE?window.Capacitor.registerPlugin('BackgroundGeolocation'):null,bgId=null;
 var WALKS=[],walk=null,walkWatch=null,wakeLock=null,walkTimer=null,walkView=null,walkNotice=false;  // var: render() から定義前に参照されても安全なように
 var walkAllLayer=L.layerGroup().addTo(map),walkLayer=L.layerGroup().addTo(map);
 const fmtDur=ms=>{const m=Math.max(0,Math.round(ms/6e4));return m<60?m+'分':Math.floor(m/60)+'時間'+(m%60)+'分';};
 const fmtKm=m=>(m/1000).toFixed(m<10000?2:1)+' km';
 const fmtDate=t=>{const d=new Date(t);return `${d.getMonth()+1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
-const walkLine=(w,opt)=>L.polyline(w.pts.map(q=>[q[0],q[1]]),Object.assign({color:css('--walk'),weight:5,opacity:.9,interactive:false,lineCap:'round',lineJoin:'round'},opt));
+const walkLine=(w,opt)=>L.polyline((w.mp&&w.mp.length>1?w.mp:w.pts).map(q=>[q[0],q[1]]),Object.assign({color:css('--walk'),weight:5,opacity:.9,interactive:false,lineCap:'round',lineJoin:'round'},opt));
 const fitPad=()=>{const ps=panelSize();return isWide()?{paddingTopLeft:[ps.w+40,90],paddingBottomRight:[40,40]}:{paddingTopLeft:[20,150],paddingBottomRight:[20,ps.h+20]};};
 function refreshWalkAll(){walkAllLayer.clearLayers();if(!S.ui.walkAll)return;WALKS.forEach(w=>{if(w.pts.length>1)walkLine(w,{weight:4,opacity:.5}).addTo(walkAllLayer);});}
 async function keepAwake(){try{if(navigator.wakeLock&&walk&&document.visibilityState==='visible')wakeLock=await navigator.wakeLock.request('screen');}catch(e){}}
-document.addEventListener('visibilitychange',()=>{if(walk&&document.visibilityState==='visible')keepAwake();});
+
+// ---------- v24: 道に合わせた経路補正（マップマッチング） ----------
+// GPSの点を、登録済みの詳細地図の道（r1〜r3）に重ねて、道を歩いたような経路にする。
+// 道から約30m以上離れた点（公園・建物の中など）は補正せず、そのまま残す。詳細地図の範囲外では何もしない。
+// 方法: 各点のまわりの道を候補にして、点との距離と、点どうしの間隔が道の上でも保たれるかを合わせて、最もつじつまの合う道を選ぶ（隠れマルコフモデル）。
+const MM={R:35,SIG:12,BETA:10,K:5,SW:1,CELL:50,MIN:.2};
+async function matchWalk(w){
+  const P=w.pts;if(!P||P.length<2||!TILESET.size)return null;
+  const need=new Set();
+  for(const q of P){const i=Math.floor(q[0]/TDLAT),j=Math.floor(q[1]/TDLNG);
+    for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const k=(i+a)+'_'+(j+b);if(TILESET.has(k))need.add(k);}}
+  if(!need.size)return null;
+  await Promise.all([...need].map(k=>new Promise(r=>loadTile(k,r))));
+  let s=90,n=-90,e=-180,wst=180;
+  for(const q of P){if(q[0]<s)s=q[0];if(q[0]>n)n=q[0];if(q[1]<wst)wst=q[1];if(q[1]>e)e=q[1];}
+  const m=.0006,KLA=111320,KLO=111320*Math.cos((s+n)/2*Math.PI/180);
+  const X=lo=>(lo-wst)*KLO,Y=la=>(la-s)*KLA;
+  const segs=[],grid=new Map();let way=0;
+  for(const k of need){const T=tileData[k];if(!T)continue;
+    for(const kind of ['r1','r2','r3']){const R=T.R[kind];if(!R)continue;
+      for(const it of R.items){
+        if(it.n<s-m||it.s>n+m||it.e<wst-m||it.w>e+m)continue;
+        const a=it.a,id=way++;
+        for(let q=2;q<a.length;q+=2){
+          const sg={x1:X(a[q-1]),y1:Y(a[q-2]),x2:X(a[q+1]),y2:Y(a[q]),way:id},idx=segs.push(sg)-1;
+          const c0=Math.floor(Math.min(sg.x1,sg.x2)/MM.CELL),c1=Math.floor(Math.max(sg.x1,sg.x2)/MM.CELL),r0=Math.floor(Math.min(sg.y1,sg.y2)/MM.CELL),r1=Math.floor(Math.max(sg.y1,sg.y2)/MM.CELL);
+          for(let cx=c0;cx<=c1;cx++)for(let cy=r0;cy<=r1;cy++){const g=cx+','+cy;(grid.get(g)||grid.set(g,[]).get(g)).push(idx);}
+        }}}}
+  if(!segs.length)return null;
+  const xy=P.map(q=>[X(q[1]),Y(q[0])]);
+  const rr=Math.ceil(MM.R/MM.CELL);
+  const cand=xy.map(([x,y])=>{
+    const cx=Math.floor(x/MM.CELL),cy=Math.floor(y/MM.CELL),best=new Map(),seen=new Set();
+    for(let a=-rr;a<=rr;a++)for(let b=-rr;b<=rr;b++)for(const idx of grid.get((cx+a)+','+(cy+b))||[]){
+      if(seen.has(idx))continue;seen.add(idx);
+      const sg=segs[idx],dx=sg.x2-sg.x1,dy=sg.y2-sg.y1,L2=dx*dx+dy*dy;
+      let u=L2?((x-sg.x1)*dx+(y-sg.y1)*dy)/L2:0;u=u<0?0:u>1?1:u;
+      const px=sg.x1+u*dx,py=sg.y1+u*dy,d=Math.hypot(x-px,y-py);
+      if(d>MM.R)continue;
+      const o=best.get(sg.way);if(!o||d<o.d)best.set(sg.way,{x:px,y:py,d,way:sg.way,seg:sg});
+    }
+    const c=[...best.values()].sort((p,q)=>p.d-q.d).slice(0,MM.K);
+    c.push({x,y,d:MM.R*.9,raw:true,way:-1});   // 道に合わせない候補（そのままの位置）
+    return c;
+  });
+  const em=c=>(c.d/MM.SIG)**2/2;
+  let prev=cand[0].map(c=>({c,cost:em(c),from:-1})),back=[prev];
+  for(let i=1;i<P.length;i++){
+    const dr=Math.hypot(xy[i][0]-xy[i-1][0],xy[i][1]-xy[i-1][1]);
+    const cur=cand[i].map(c=>{let bc=1e18,bf=-1;
+      prev.forEach((p,j)=>{
+        let tr=Math.abs(Math.hypot(c.x-p.c.x,c.y-p.c.y)-dr)/MM.BETA;
+        if(!c.raw&&!p.c.raw&&c.way!==p.c.way)tr+=MM.SW;
+        const v=p.cost+tr;if(v<bc){bc=v;bf=j;}
+      });
+      return {c,cost:bc+em(c),from:bf};});
+    back.push(cur);prev=cur;
+  }
+  let j=prev.reduce((bi,p,i)=>p.cost<prev[bi].cost?i:bi,0);
+  const path=new Array(P.length);
+  for(let i=P.length-1;i>=0;i--){const nd=back[i][j];path[i]=nd.c;j=nd.from;}
+  const ratio=path.filter(c=>!c.raw).length/P.length;
+  if(ratio<MM.MIN)return null;
+  const out=[],push=(x,y,tm)=>out.push([+(s+y/KLA).toFixed(6),+(wst+x/KLO).toFixed(6),tm]);
+  for(let i=0;i<path.length;i++){
+    const c=path[i],tm=P[i][2];
+    if(i>0){const p=path[i-1];
+      if(!c.raw&&!p.raw&&c.way!==p.way){   // 道が替わるところは、交差点（線分の端）を通るようにする
+        const ea=[[p.seg.x1,p.seg.y1],[p.seg.x2,p.seg.y2]],eb=[[c.seg.x1,c.seg.y1],[c.seg.x2,c.seg.y2]];
+        let bd=1e9,pa=null,pb=null;
+        for(const u of ea)for(const v of eb){const d=Math.hypot(u[0]-v[0],u[1]-v[1]);if(d<bd){bd=d;pa=u;pb=v;}}
+        const dd=Math.hypot(c.x-p.x,c.y-p.y);
+        if(bd<20&&Math.hypot(pa[0]-p.x,pa[1]-p.y)+Math.hypot(pb[0]-c.x,pb[1]-c.y)+bd<=dd*1.5+10){push(pa[0],pa[1],P[i-1][2]);if(bd>2)push(pb[0],pb[1],tm);}
+      }}
+    push(c.x,c.y,tm);
+  }
+  let dist=0;for(let i=1;i<out.length;i++)dist+=km(out[i-1],out[i])*1000;
+  return {pts:out,dist,ratio};
+}
+async function applyMatch(w){
+  if(w.mp||w.mpTried||!w.end)return;
+  w.mpTried=true;
+  try{
+    const r=await matchWalk(w);
+    if(r){w.mp=r.pts;w.mr=+r.ratio.toFixed(2);w.rawDist=w.dist;w.dist=r.dist;}
+    await store('put','walks',w);
+    refreshWalkAll();
+    if(r){checkStamps(true);if(typeof fbSoon==='function')fbSoon();}
+    if(r&&walkView===w.id&&!settingsOpen)render();
+  }catch(e){}
+}
+// v24: 画面を消していた間に位置情報の監視が止まっていることがあるので、戻ったときに点を取り直して監視も張り直す
+document.addEventListener('visibilitychange',()=>{
+  if(BG||!walk||document.visibilityState!=='visible')return;
+  keepAwake();
+  try{navigator.geolocation.getCurrentPosition(p=>addPoint(p),()=>{},{enableHighAccuracy:true,maximumAge:10000,timeout:15000});}catch(e){}
+  if(walkWatch!==null){try{navigator.geolocation.clearWatch(walkWatch);}catch(e){}walkWatch=null;watchWalk();}
+});
 function walkHelp(){walkNotice=true;recFilter='walk';walkView=null;setMapOnly(false);panel.classList.remove('collapsed');setTab('rec');
   toast('この画面では位置情報が使えません。記録タブの案内を見てください');}
 function watchWalk(){
-  walkWatch=navigator.geolocation.watchPosition(addPoint,e=>{if(e.code===1)toast('位置情報の許可が取り消されたため、記録が止まっています');},{enableHighAccuracy:true,maximumAge:5000,timeout:30000});
-  keepAwake();clearInterval(walkTimer);walkTimer=setInterval(paintWalkBar,1000);paintWalkBar();drawLive();
+  if(BG){
+    walkWatch=-1;
+    BG.addWatcher({backgroundTitle:'お散歩を記録しています',backgroundMessage:'画面を消しても、歩いた経路を記録します',requestPermissions:true,stale:false,distanceFilter:5},(loc,err)=>{
+      if(err){if(err.code==='NOT_AUTHORIZED'){toast('位置情報の許可が必要です。設定を開きます');try{BG.openSettings();}catch(e){}}return;}
+      addPoint({coords:{latitude:loc.latitude,longitude:loc.longitude,accuracy:loc.accuracy||0},timestamp:loc.time||Date.now()});
+    }).then(id=>{bgId=id;}).catch(()=>toast('位置情報を開始できませんでした'));
+  }else{
+    walkWatch=navigator.geolocation.watchPosition(addPoint,e=>{if(e.code===1)toast('位置情報の許可が取り消されたため、記録が止まっています');},{enableHighAccuracy:true,maximumAge:5000,timeout:30000});
+    keepAwake();
+  }
+  clearInterval(walkTimer);walkTimer=setInterval(paintWalkBar,1000);paintWalkBar();drawLive();
 }
 function startWalk(){
+  if(BG){   // ネイティブ: 最初の点は監視から届く
+    walk={id:newId('walk'),start:Date.now(),end:null,pts:[],dist:0,photos:[],active:true};
+    watchWalk();store('put','walks',walk).catch(()=>{});
+    toast('記録を始めました。画面を消しても、経路を記録し続けます');
+    return;
+  }
   if(!navigator.geolocation){walkHelp();return;}
   const btn=document.getElementById('walkbtn');btn.disabled=true;btn.textContent='現在地を確認中…';
   navigator.geolocation.getCurrentPosition(pos=>{
@@ -2036,6 +2256,7 @@ function addPoint(pos,first){
   const c=pos.coords,pt=[+c.latitude.toFixed(6),+c.longitude.toFixed(6),pos.timestamp||Date.now(),Math.round(c.accuracy||0)];
   if(first!==true&&c.accuracy>60)return;  // 精度の悪い点は使わない
   const last=walk.pts[walk.pts.length-1];
+  if(last&&pt[2]-last[2]>12e4)walk.gaps=(walk.gaps||0)+1;  // 2分以上、点が取れなかった（画面を消していた等）
   if(last){const d=km(last,pt)*1000;if(d<5)return;walk.dist+=d;}
   walk.pts.push(pt);drawLive();
   if(walk.pts.length%10===1)store('put','walks',walk).catch(()=>{});  // 途中経過も保存（タブが閉じても残るように）
@@ -2053,12 +2274,13 @@ function paintWalkBar(){
 }
 async function endWalk(){
   if(!walk)return;
-  if(walkWatch!==null)navigator.geolocation.clearWatch(walkWatch);walkWatch=null;clearInterval(walkTimer);
+  if(BG&&bgId!==null){try{BG.removeWatcher({id:bgId});}catch(e){}bgId=null;}
+  if(walkWatch!==null&&walkWatch!==-1)navigator.geolocation.clearWatch(walkWatch);walkWatch=null;clearInterval(walkTimer);
   try{wakeLock&&wakeLock.release();}catch(e){}wakeLock=null;
   const w=walk;walk=null;w.end=Date.now();w.active=false;walkLayer.clearLayers();paintWalkBar();
   if(w.pts.length<2&&!w.photos.length){await store('del','walks',w.id).catch(()=>{});toast('ほとんど移動していなかったので、記録は残しませんでした');return;}
   try{await store('put','walks',w);}catch(e){toast('保存できませんでした（容量不足の可能性があります）');return;}
-  WALKS=WALKS.filter(x=>x.id!==w.id).concat(w);refreshWalkAll();fbSoon();
+  WALKS=WALKS.filter(x=>x.id!==w.id).concat(w);refreshWalkAll();fbSoon();applyMatch(w);
   const got=checkStamps(true);
   recFilter='walk';walkView=w.id;setMapOnly(false);panel.classList.remove('collapsed');setTab('rec');
   toast(`お散歩を保存しました（${fmtKm(w.dist)}・${fmtDur(w.end-w.start)}）`+(got.length?`。スタンプを${got.length}個手に入れました（${got.map(s=>s.big).join('・')}）`:''));
@@ -2083,9 +2305,9 @@ document.getElementById('w-cam').onchange=e=>{walkPhoto(e.target.files[0]);e.tar
 // 経路の形を小さく描いたサムネイル
 function walkThumb(w){
   if(w.pts.length<2)return '<span class="nophoto k-other">歩</span>';
-  const la=w.pts.map(q=>q[0]),ln=w.pts.map(q=>q[1]),y0=Math.min(...la),y1=Math.max(...la),x0=Math.min(...ln),x1=Math.max(...ln);
+  const WP=w.mp&&w.mp.length>1?w.mp:w.pts,la=WP.map(q=>q[0]),ln=WP.map(q=>q[1]),y0=Math.min(...la),y1=Math.max(...la),x0=Math.min(...ln),x1=Math.max(...ln);
   const k=Math.cos(y0*Math.PI/180),s=Math.max((x1-x0)*k,y1-y0)||1e-9,ox=(44-(x1-x0)*k/s*44)/2,oy=(44-(y1-y0)/s*44)/2;
-  const pts=w.pts.map(q=>`${(6+ox+(q[1]-x0)*k/s*44).toFixed(1)},${(50-oy-(q[0]-y0)/s*44).toFixed(1)}`).join(' ');
+  const pts=WP.map(q=>`${(6+ox+(q[1]-x0)*k/s*44).toFixed(1)},${(50-oy-(q[0]-y0)/s*44).toFixed(1)}`).join(' ');
   return `<svg class="wthumb" viewBox="0 0 56 56" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--walk)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 function showWalk(w,fit){
@@ -2182,9 +2404,11 @@ function renderWalks(prog,allV){
   body.querySelectorAll('[data-walk]').forEach(b=>b.onclick=()=>{walkView=b.dataset.walk;render();body.scrollTop=0;});
 }
 function renderWalkDetail(w){
+  if(!w.mp&&!w.mpTried)applyMatch(w);  // 補正していない過去の記録は、開いたときに補正する
   body.innerHTML=`<button class="back" id="wd-back">← お散歩の一覧</button>
   <h2 class="pin-title">${fmtDate(w.start)}のお散歩</h2>
   <div class="ptable wsum"><div><b>距離</b><span>${fmtKm(w.dist)}</span></div><div><b>時間</b><span class="sm">${fmtDur((w.end||w.start)-w.start)}</span></div><div><b>写真</b><span>${w.photos.length}</span></div></div>
+  ${w.mp?`<p class="qs" style="margin:-4px 0 8px">経路は、登録されている地図の道に合わせて補正しています（補正前の距離 ${fmtKm(w.rawDist||w.dist)}）。</p>`:''}${w.gaps?`<p class="qs" style="margin:-4px 0 8px">位置情報が取れなかった区間が${w.gaps}回あります（画面を消した間など）。その間は直線でつないでいます。</p>`:''}
   ${w.photos.length?`<div class="sec"><h3>写真</h3><div class="gallery">${w.photos.map((ph,i)=>`<button class="gph" data-wv="${i}" aria-label="写真${i+1}を拡大"><img data-photo="${ph.id}" alt=""></button>`).join('')}</div></div>`:''}
   <div class="sec"><h3>あとから写真を追加</h3><p class="qs" style="margin:0 0 6px">カメラで撮った写真を選ぶと、撮影時刻を経路と照らし合わせて、撮った場所に自動で置きます。このお散歩の時間に撮った写真だけが対象です。</p>
   <label class="ghost filebtn" for="wd-add">写真を選ぶ</label><input type="file" id="wd-add" accept="image/jpeg,image/*" multiple hidden></div>
@@ -2292,7 +2516,7 @@ const SpotLayer=L.GridLayer.extend({
     const z=co.z,sc=256*Math.pow(2,z),ox=co.x*size.x,oy=co.y*size.y,ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
     const px=lo=>(lo+180)/360*sc-ox,py=la=>{const s=Math.sin(la*Math.PI/180);return (.5-Math.log((1+s)/(1-s))/(4*Math.PI))*sc-oy;};
     const pad=40,nw=map.unproject(co.scaleBy(size).subtract([pad,pad]),z),se=map.unproject(co.add([1,1]).scaleBy(size).add([pad,pad]),z);
-    const detail=z>=DETAIL_Z,minBig=detail?0:z>=13?1:2,list=spotsIn(se.lat,nw.lng,nw.lat,se.lng).filter(p=>on.has(p.c)&&p.big>=minBig);
+    const detail=z>=SPOT_Z,minBig=detail?0:z>=13?1:2,list=spotsIn(se.lat,nw.lng,nw.lat,se.lng).filter(p=>on.has(p.c)&&p.big>=minBig);
     const col=c=>css('--sp-'+c);
     if(detail){
       // 敷地・建物の外形を塗る（大きいものから描いて、小さいものが上に来るように）
@@ -2301,7 +2525,7 @@ const SpotLayer=L.GridLayer.extend({
         ctx.globalAlpha=.34;ctx.fillStyle=col(p.c);ctx.fill();ctx.globalAlpha=1;ctx.lineWidth=5;ctx.strokeStyle=css('--panel');ctx.stroke();ctx.lineWidth=2.5;ctx.strokeStyle=col(p.c);ctx.stroke();});
     }
     // 点（外形のない施設、または縮小時）
-    const glyph=z>=DETAIL_Z;
+    const glyph=z>=SPOT_Z;
     list.forEach(p=>{const x=px(p.lng),y=py(p.lat);if(detail&&p.ring&&!(p.big>1))return;
       const r=glyph?(p.big>1?9:7.5):p.big>1?5.5:4;
       ctx.beginPath();ctx.arc(x,y,r+2,0,7);ctx.fillStyle=css('--panel');ctx.fill();
@@ -2336,17 +2560,17 @@ function paintSpotBar(){
 map.on('click',e=>{
   const on=spotOn();if(!SPOTS||!on.size)return;
   if(pinView&&pinView.mode==='pick')return;if(quiz&&!quiz.answered&&quiz.i<5&&curQ().m==='pos')return;  // ピン置き・位置クイズ中は出さない
-  const pt=map.latLngToContainerPoint(e.latlng),z=map.getZoom(),d=map.containerPointToLatLng(pt.add([16,16])),c2=map.containerPointToLatLng(pt.subtract([16,16]));
+  const pt=map.latLngToContainerPoint(e.latlng),z=map.getZoom(),d=map.containerPointToLatLng(pt.add([TP,TP])),c2=map.containerPointToLatLng(pt.subtract([TP,TP]));
   const inRing=(p,la,lo)=>{const r=p.ring;let ins=false;for(let i=0,j=r.length-2;i<r.length;j=i,i+=2){const yi=r[i],xi=r[i+1],yj=r[j],xj=r[j+1];if(((yi>la)!==(yj>la))&&lo<(xj-xi)*(la-yi)/(yj-yi)+xi)ins=!ins;}return ins;};
-  const minBig=z>=DETAIL_Z?0:z>=13?1:2,cand=spotsIn(d.lat,c2.lng,c2.lat,d.lng).filter(p=>on.has(p.c)&&p.big>=minBig);
+  const minBig=z>=SPOT_Z?0:z>=13?1:2,cand=spotsIn(d.lat,c2.lng,c2.lat,d.lng).filter(p=>on.has(p.c)&&p.big>=minBig);
   let best=null,bd=1e9;
-  cand.forEach(p=>{const q=map.latLngToContainerPoint([p.lat,p.lng]),dd=q.distanceTo(pt);if(dd<=16&&dd<bd){best=p;bd=dd;}});
-  if(!best&&z>=DETAIL_Z){const hits=spotsIn(e.latlng.lat,e.latlng.lng,e.latlng.lat,e.latlng.lng).filter(p=>on.has(p.c)&&p.ring&&inRing(p,e.latlng.lat,e.latlng.lng));
+  cand.forEach(p=>{const q=map.latLngToContainerPoint([p.lat,p.lng]),dd=q.distanceTo(pt);if(dd<=TP&&dd<bd){best=p;bd=dd;}});
+  if(!best&&z>=SPOT_Z){const hits=spotsIn(e.latlng.lat,e.latlng.lng,e.latlng.lat,e.latlng.lng).filter(p=>on.has(p.c)&&p.ring&&inRing(p,e.latlng.lat,e.latlng.lng));
     hits.sort((a,b)=>(a.n2-a.s)*(a.e-a.w)-(b.n2-b.s)*(b.e-b.w));best=hits[0];}
   if(!best)return;
   const base=s=>s.replace(/[\s（(].*$/,'').replace(/\s/g,''),pl=PLAYS.find(x=>base(x.n)&&(base(x.n)===base(best.n)||x.n.includes(best.n)||best.n.includes(base(x.n))&&base(x.n).length>=3));
   const html=`<div class="spotpop"><b>${esc(best.n)}</b><small><i style="background:var(--sp-${best.c})"></i>${SPOTNAME[best.c]}</small>${pl?`<button class="ghost" data-sp-play="${pl.id}">図鑑の「遊び場」で見る</button>`:''}</div>`;
-  const pop=L.popup({className:'spot-popup',offset:[0,-4],autoPanPadding:[30,30]}).setLatLng(best.ring&&z>=DETAIL_Z?e.latlng:[best.lat,best.lng]).setContent(html).openOn(map);
+  const pop=L.popup({className:'spot-popup',offset:[0,-4],autoPanPadding:[30,30]}).setLatLng(best.ring&&z>=SPOT_Z?e.latlng:[best.lat,best.lng]).setContent(html).openOn(map);
   setTimeout(()=>{const b=pop.getElement()&&pop.getElement().querySelector('[data-sp-play]');if(b)b.onclick=()=>{map.closePopup();openPlay(b.dataset.spPlay);};},0);
 });
 document.getElementById('btn-spots').onclick=e=>{e.preventDefault();spotBar.hidden=!spotBar.hidden;paintSpotBar();};
@@ -2612,14 +2836,20 @@ mq.addEventListener&&mq.addEventListener('change',retheme);
 new MutationObserver(retheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
 render();
-setTimeout(()=>{map.invalidateSize();fitAll();},0);
+// v24: 再読み込みしたとき、いったん全体地図を出してから拡大位置へ飛ぶ動きをなくす。URLの#t…（街）があれば、最初から その街を表示する
+window.__boot=true;setTimeout(()=>{window.__boot=false;},4000);
+{const bh=/^#t(\d+)$/.exec(location.hash),bg=/^#([sp]\d+)$/.exec(location.hash);
+ setTimeout(()=>{map.invalidateSize();
+   if(bh&&STATIONS[+bh[1]])map.setView(BY[STATIONS[+bh[1]].n].ll,16,{animate:false});
+   else if(!bg)fitAll();},0);}
 openDB().then(async d=>{idb=d;try{PINS=(await store('all','pins'))||[];}catch(e){PINS=[];}
   try{WALKS=(await store('all','walks'))||[];}catch(e){WALKS=[];}
   resumeWalk();refreshWalkAll();checkStamps(true);
   const h=/^#t(\d+)$/.exec(location.hash),g=/^#([sp]\d+)$/.exec(location.hash);
   if(h&&STATIONS[+h[1]])enterTown(STATIONS[+h[1]].n);
   else if(g){g[1][0]==='s'?openShop(g[1]):openPlay(g[1]);}  // v22: 共有リンク（#s123 / #p45）からその店・遊び場を開く
-  else render();});
+  else render();
+  setTimeout(()=>{window.__boot=false;},400);});
 })();
 </script>
 

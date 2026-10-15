@@ -1,0 +1,17 @@
+{
+  "name": "沿線まち図鑑",
+  "short_name": "まち図鑑",
+  "description": "山手線と中央線快速の46駅を、気分から選んで歩ける図鑑。行った・ピン・お散歩の記録つき。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FAF9F5",
+  "theme_color": "#FAF9F5",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

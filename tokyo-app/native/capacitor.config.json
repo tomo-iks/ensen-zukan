@@ -1,0 +1,12 @@
+{
+  "appId": "jp.tomoiks.ensenzukan",
+  "appName": "沿線まち図鑑",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "useLegacyBridge": true
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
