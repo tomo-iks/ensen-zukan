@@ -430,6 +430,17 @@ button.chip[aria-pressed="true"],.ffilter .chip[aria-pressed="true"]{background:
 .recthumb{border-width:1px!important;border-radius:var(--r)!important}
 .pinm{width:26px;height:26px}
 #toast{border-radius:var(--r)}
+#btn-fac{display:none!important}
+.askbk{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.askbx{background:var(--panel);color:var(--ink);border-radius:12px;padding:18px;max-width:420px;width:100%;box-shadow:var(--shadow);max-height:88vh;overflow:auto}
+.askbx p{margin:0 0 14px;font-size:16px;line-height:1.6}.askbt{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+.askbt button,.locbx button{padding:10px 18px;border-radius:8px;font:inherit;font-weight:700;border:1px solid var(--rule);background:var(--chip);color:var(--ink)}
+.askbt .primary,.locbx .primary{background:var(--accent);color:#fff;border-color:transparent}
+.guidebx h2{margin:0 0 4px;font-size:20px}.grow{display:flex;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--rule);font-size:14px;line-height:1.5}
+.gi{flex:none;width:44px;height:36px;display:grid;place-items:center;border-radius:8px;background:var(--chip);color:var(--ink)}
+.gi svg{width:20px;height:20px}.locbx{margin-top:12px;padding:12px;border-radius:8px;background:var(--chip)}.locbx p{font-size:13px;margin:4px 0 10px}
+.guidebx .qs{font-size:13px;line-height:1.55;margin:0 0 8px}.guidebx .grow{font-size:13.5px}.guidebx .askbt{position:sticky;bottom:-18px;background:var(--panel);padding:10px 0 4px;margin:0}
+.sb-h2{margin:10px 0 6px;font-weight:700;font-size:13px;color:var(--ink2)}
 .fpin{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;font:700 14px var(--f-disp);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);transform:scale(var(--zs,1));box-sizing:border-box}
 .fpin.big{width:34px;height:34px;font-size:17px;border-radius:50% 50% 50% 4px;border-width:2.5px}
 .fname{position:absolute;left:38px;top:6px;white-space:nowrap;font:700 12px var(--f-disp);color:var(--ink);background:color-mix(in srgb,var(--panel) 88%,transparent);border-radius:4px;padding:1px 5px;box-shadow:0 0 0 1px var(--rule)}
@@ -2624,7 +2635,53 @@ ctl.onAdd=()=>{const d=L.DomUtil.create('div','leaflet-bar mapctl');
   L.DomEvent.disableClickPropagation(d);return d;};
 ctl.addTo(map);
 function paintThemeBtn(){const b=document.getElementById('btn-theme');if(!b)return;const dk=isDark();b.innerHTML=dk?ICON.sun:ICON.moon;b.setAttribute('aria-label',dk?'ライトモードにする':'ダークモードにする');}
-document.getElementById('btn-theme').onclick=e=>{e.preventDefault();setTheme(isDark()?'light':'dark');};
+function askOk(msg,okLabel,fn){
+  const w=document.createElement('div');w.className='askbk';
+  w.innerHTML='<div class="askbx" role="dialog" aria-modal="true"><p>'+esc(msg)+'</p><div class="askbt"><button class="ghost" data-a="n">やめる</button><button class="primary" data-a="y">'+esc(okLabel)+'</button></div></div>';
+  document.body.appendChild(w);L.DomEvent.disableClickPropagation(w);
+  w.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-a]');if(a||e.target===w){w.remove();if(a&&a.dataset.a==='y')fn();}});
+}
+document.getElementById('btn-theme').onclick=e=>{e.preventDefault();const dk=isDark();
+  askOk(dk?'ライトモード(明るい表示)に切り替えますか？':'ダークモード(暗い表示)に切り替えますか？',dk?'ライトにする':'ダークにする',()=>setTheme(dk?'light':'dark'));};
+// --- 使い方ガイド(初回に表示。右上の「?」ボタンでいつでも開ける)
+{const d=document.querySelector('.mapctl');
+ if(d){const a=document.createElement('a');a.href='#';a.setAttribute('role','button');a.id='btn-guide';a.title='使い方';a.setAttribute('aria-label','使い方ガイドを開く');a.innerHTML='<b style="font:700 16px var(--f-disp)">?</b>';a.onclick=e=>{e.preventDefault();openGuide();};d.appendChild(a);}}
+function requestLocationAlways(){
+  try{
+    if(NATIVE&&BG){
+      // 位置情報(常に許可)の確認を出す。確認のためだけに、短い間だけ監視を始める
+      BG.addWatcher({backgroundTitle:'沿線まち図鑑',backgroundMessage:'位置情報の許可を確認しています',requestPermissions:true,stale:false,distanceFilter:50},(loc,err)=>{
+        if(err&&err.code==='NOT_AUTHORIZED'){toast('位置情報の許可が必要です。「常に許可」を選ぶと、画面を消しても散歩を記録できます');try{BG.openSettings();}catch(e){}}
+      }).then(id=>{setTimeout(()=>{try{BG.removeWatcher({id:id});}catch(e){}},4000);}).catch(()=>{});
+    }else if(navigator.geolocation){navigator.geolocation.getCurrentPosition(()=>{},()=>{},{timeout:8000});}
+  }catch(e){}
+}
+function openGuide(first){
+  if(document.getElementById('guide'))return;
+  const ic=id=>{const e=document.getElementById(id);return e?e.innerHTML:'';};
+  const rows=[
+    ['<b style="font:700 20px var(--f-disp)">＋ −</b>','地図を拡大・縮小します(指のピンチでもできます)'],
+    [ic('btn-me'),'今いる場所へ移動します。青い点が現在地です'],
+    [ic('btn-spots'),'ピンの表示を選びます。観光名所・遊び場などの「スポット」と、大学・図書館・美術館・カラオケ・研究機関の「施設」を、ここで一緒に切り替えられます'],
+    [ic('btn-theme'),'明るい表示と暗い表示を切り替えます(確認が出ます)'],
+    [ic('btn-settings'),'設定を開きます(記録の書き出し・取り込みなど)'],
+    ['<b style="font:700 16px var(--f-disp)">?</b>','この使い方ガイドを、もう一度開きます'],
+    ['<b style="font:700 13px var(--f-disp)">地図のみ</b>','下のパネルを隠して、地図だけを広く見ます。もう一度押すと戻ります'],
+    ['<b style="font:700 13px var(--f-disp)">お散歩</b>','「お散歩を始める」で、歩いた道すじを記録します。画面を消しても記録は続きます']
+  ];
+  const w=document.createElement('div');w.id='guide';w.className='askbk';
+  w.innerHTML='<div class="askbx guidebx" role="dialog" aria-modal="true" aria-label="使い方ガイド"><h2>はじめに：使い方</h2><p class="qs">画面の右上のボタンで、できること</p><div class="grows">'+
+    rows.map(r=>'<div class="grow"><span class="gi">'+r[0]+'</span><span>'+r[1]+'</span></div>').join('')+'</div>'+
+    '<p class="qs">駅の名前や丸を押すと、その街の紹介が開きます。画面下のパネルでは、図鑑・クイズ・記録を切り替えられます。</p>'+
+    (first?'<div class="locbx"><b>位置情報について</b><p class="qs">お散歩の記録と「現在地」に使います。画面を消しても記録を続けるには、「常に許可」を選んでください。位置情報は端末の中だけに保存され、外部へは送りません。</p><button class="primary" data-a="loc">位置情報を許可する</button></div>':'')+
+    '<div class="askbt"><button class="primary" data-a="close">'+(first?'はじめる':'閉じる')+'</button></div></div>';
+  document.body.appendChild(w);
+  w.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-a]');if(!a)return;
+    if(a.dataset.a==='loc'){requestLocationAlways();a.textContent='確認を出しました';a.disabled=true;return;}
+    w.remove();});
+  try{S.ui.guideSeen=1;save();}catch(e){}
+}
+if(!S.ui.guideSeen)afterBoot(()=>openGuide(true),300);
 document.getElementById('btn-me').onclick=e=>{e.preventDefault();
   if(inArtifact||!navigator.geolocation){toast('この画面では現在地を使えません。'+PAGES_URL+' で開くと使えます');return;}
   meStart();
@@ -2640,7 +2697,7 @@ const FAC_TYPES={
   'mus':{g:'mus',name:'博物館・美術館',ch:'美',z:13.5},'kar':{g:'kar',name:'カラオケ',ch:'歌',z:14.5},'res':{g:'res',name:'国立の研究機関',ch:'研',big:1,z:12.5}
 };
 const FAC_GROUPS=[['uni','大学'],['lib','図書館'],['mus','博物館・美術館'],['kar','カラオケ'],['res','国立の研究機関']];
-S.ui.fac=Object.assign({on:['uni','lib','mus','kar','res']},S.ui.fac||{});
+S.ui.fac2=Object.assign({on:[]},S.ui.fac2||{});S.ui.fac=S.ui.fac2;   // 初期は、どの施設のピンも出さない(「施設のピン」ボタンで選ぶ)
 var FAC=null,facState=null;const facLayer=L.layerGroup().addTo(map),facMk=new Map();
 function loadFac(){
   if(FAC||facState)return;facState='loading';
@@ -2756,14 +2813,18 @@ function setSpotMode(m){S.ui.spots.mode=m;save();if(m!=='off'){loadSpots();if(!m
 const spotBar=document.createElement('div');spotBar.id='spotbar';spotBar.hidden=true;document.body.appendChild(spotBar);
 L.DomEvent.disableClickPropagation(spotBar);L.DomEvent.disableScrollPropagation(spotBar);
 function paintSpotBar(){
-  const m=S.ui.spots.mode,on=new Set(S.ui.spots.on),b=document.getElementById('btn-spots');if(b)b.classList.toggle('on',m!=='off');
+  const m=S.ui.spots.mode,on=new Set(S.ui.spots.on),b=document.getElementById('btn-spots');if(b)b.classList.toggle('on',m!=='off'||S.ui.fac2.on.length>0);
   if(spotBar.hidden)return;
   const cnt=c=>SPOTS?SPOTS.filter(p=>p.c===c).length:'';
-  spotBar.innerHTML=`<div class="sb-h"><b>スポット</b><button class="back" id="sb-x" aria-label="閉じる">閉じる</button></div>
+  const fon=new Set(S.ui.fac2.on);
+  spotBar.innerHTML=`<div class="sb-h"><b>ピンの表示</b><button class="back" id="sb-x" aria-label="閉じる">閉じる</button></div>
   <div class="seg3 sb-seg" role="group">${[['off','オフ'],['all','まとめて表示'],['pick','種類を選ぶ']].map(([k,x])=>`<button data-sm="${k}" aria-pressed="${m===k}">${x}</button>`).join('')}</div>
   <div class="sb-cats">${SPOT_CATS.map(([k,x])=>`<button class="sb-cat" data-sc="${k}" aria-pressed="${m==='all'||(m==='pick'&&on.has(k))}" ${m==='pick'?'':'disabled'}><i style="background:var(--sp-${k})">${SPOTCH[k]}</i>${x}<small>${cnt(k)}</small></button>`).join('')}</div>
+  <div class="sb-h2">施設(拡大すると表示されます)</div>
+  <div class="chips">${FAC_GROUPS.map(([g,n])=>`<button class="chip" data-fg="${g}" aria-pressed="${fon.has(g)}"><span class="fdot f-${g}"></span>${n}</button>`).join('')}</div>
   <p class="qs sb-note">${spotState==='loading'?'読み込み中…':m==='pick'?'表示したい種類を押してください（複数選べます）':m==='all'?'6種類をまとめて色分けして表示しています':'地図に観光名所や遊べる場所を色分けして表示します'}。拡大すると敷地や建物の形と名前が出ます。地図：© OpenStreetMap contributors</p>`;
   spotBar.querySelector('#sb-x').onclick=()=>{spotBar.hidden=true;};
+  spotBar.querySelectorAll('[data-fg]').forEach(x=>x.onclick=()=>{const s=new Set(S.ui.fac2.on),g=x.dataset.fg;s.has(g)?s.delete(g):s.add(g);S.ui.fac2.on=[...s];S.ui.fac=S.ui.fac2;save();if(s.size)loadFac();refreshFac();paintSpotBar();});
   spotBar.querySelectorAll('[data-sm]').forEach(x=>x.onclick=()=>setSpotMode(x.dataset.sm));
   spotBar.querySelectorAll('[data-sc]').forEach(x=>x.onclick=()=>{const k=x.dataset.sc,s=new Set(S.ui.spots.on);s.has(k)?s.delete(k):s.add(k);S.ui.spots.on=[...s];save();spotLayer.redraw();paintSpotBar();});
 }
@@ -3087,6 +3148,7 @@ function bootFade(){const b=document.getElementById('boot');if(!b)return;b.style
 {const b=document.getElementById('boot');if(b)b.addEventListener('click',()=>{if(bootReady)bootFade();});}   // 準備ができていれば、タップで演出を飛ばせる
 setTimeout(()=>{const b=document.getElementById('boot');if(b)try{b.remove();}catch(e){}},7000);   // CSSで見えなくなったあと、取り除く
    // 何かあっても、出しっぱなしにしない   // 何かあっても、読み込み中の画面を出しっぱなしにしない
+try{setMapOnly(true);}catch(e){}   // 起動直後は、地図だけを見せる
 bootReady=true;window.__appStarted=true;
 requestAnimationFrame(()=>requestAnimationFrame(()=>window.__go()));   // 重い準備が終わってから、演出を動かし始める(動いている最中に処理が割り込まないので、なめらか)
 afterBoot(()=>{const s=document.createElement('script');s.src='places.js';s.async=true;document.head.appendChild(s);},0);   // 店・遊び場のデータ(約1.2MB)は、最初の表示のあとに読む
