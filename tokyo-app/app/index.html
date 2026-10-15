@@ -1,5 +1,23 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>沿線まち図鑑</title>
+<style>
+#boot{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#F4F2EC;color:#1F2629;font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",sans-serif;transition:opacity .45s ease}
+@media (prefers-color-scheme: dark){#boot{background:#121619;color:#E6ECEE}}
+#boot.done{opacity:0;pointer-events:none}
+#boot .bm{display:flex;gap:6px;align-items:flex-end;height:46px}
+#boot .bm i{display:block;width:12px;border-radius:4px;animation:bootbar 1.2s ease-in-out infinite}
+#boot .bm i:nth-child(1){height:46px;background:#5FA834}
+#boot .bm i:nth-child(2){height:34px;background:#E2592A;animation-delay:.18s}
+#boot .bm i:nth-child(3){height:24px;background:#2860A8;animation-delay:.36s}
+@keyframes bootbar{0%,100%{transform:scaleY(.55);opacity:.6}50%{transform:scaleY(1);opacity:1}}
+#boot h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.06em}
+#boot p{margin:0;font-size:13px;opacity:.7;letter-spacing:.04em}
+#boot .tr{width:180px;height:3px;border-radius:2px;background:rgba(127,127,127,.25);overflow:hidden}
+#boot .tr b{display:block;width:40%;height:100%;border-radius:2px;background:#2860A8;animation:bootslide 1.3s ease-in-out infinite}
+@keyframes bootslide{0%{margin-left:-40%}100%{margin-left:100%}}
+@media (prefers-reduced-motion: reduce){#boot .bm i,#boot .tr b{animation:none}}
+</style>
+<div id="boot" role="status" aria-live="polite"><div class="bm"><i></i><i></i><i></i></div><h1>沿線まち図鑑</h1><p>山手線と中央線快速の46駅</p><div class="tr"><b></b></div><p>地図を準備しています</p></div>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+New:wght@700;900&family=Barlow+Condensed:wght@600;700&display=swap">
@@ -58,11 +76,12 @@ button{cursor:pointer}
 .leaflet-tooltip.muni-label::before{display:none}
 .leaflet-tooltip.st-label.sel{font-size:17px;color:var(--accent)}
 .hide-st .st-label{display:none}
-.far .st-label.minor{display:none}.far .st-label.minor.sel{display:block}
+.far .st-label.t2,.far .st-label.t3,.mid .st-label.t3{display:none}.far .st-label.sel,.mid .st-label.sel{display:block}
 .leaflet-tooltip.st-label.leaflet-tooltip-top,.leaflet-tooltip.st-label.leaflet-tooltip-bottom{padding:8px 10px;margin-left:0}
 .leaflet-tooltip.st-label.leaflet-tooltip-left{padding:10px 6px 10px 12px;margin-left:-2px}
 /* v24: 小さな印も、見えない余白をつけて押しやすくする */
-.recm{position:relative;margin:10px}.recm::after{content:"";position:absolute;inset:-10px;border-radius:50%}
+.recm{position:relative;margin:10px;transform:scale(var(--zs,1))}.recm::after{content:"";position:absolute;inset:-10px;border-radius:50%}
+.pinm{transform:rotate(-45deg) scale(var(--zs,1))!important}
 .pinm::before{content:"";position:absolute;inset:-8px;border-radius:50%;transform:rotate(45deg)}
 .muni-off .muni-label{display:none}
 
@@ -344,6 +363,9 @@ button.chip[aria-pressed="true"],.ffilter .chip[aria-pressed="true"]{background:
 .recthumb{border-width:1px!important;border-radius:var(--r)!important}
 .pinm{width:26px;height:26px}
 #toast{border-radius:var(--r)}
+.medot{width:26px;height:26px;border-radius:50%;background:rgba(40,96,168,.22);display:grid;place-items:center;animation:mepulse 2.2s ease-out infinite}
+.medot i{display:block;width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45)}
+@keyframes mepulse{0%{box-shadow:0 0 0 0 rgba(40,96,168,.35)}100%{box-shadow:0 0 0 16px rgba(40,96,168,0)}}
 #dotkind{position:fixed;z-index:700;display:none;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);padding:9px 14px;border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);color:var(--ink);font:700 14px var(--f-body);box-shadow:var(--shadow)}
 body.maponly #dotkind{display:block}
 @media (min-width:860px){#dotkind{right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 28px)}}
@@ -916,7 +938,9 @@ const rails={
 [linePts(YAMANOTE,true),linePts(CHUO,false)].forEach(pts=>{for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],n=Math.ceil(km(a,b)/.1);
   for(let k=0;k<=n;k++){const m=muniAt([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);if(m)LINE_MUNI.add(m);}}});
 
-const MAJOR=new Set(['東京','新宿','渋谷','池袋','上野','品川','秋葉原','中野','吉祥寺','立川']);  // 最も引いた地図で名前を出す駅
+const MAJOR=new Set(['東京','新宿','渋谷','池袋','上野','品川','秋葉原','中野','吉祥寺','立川']);
+const SEMI=new Set(['恵比寿','目黒','五反田','大塚','巣鴨','日暮里','御茶ノ水','四ツ谷','高円寺','荻窪','三鷹','国分寺']);
+const tierOf=n=>MAJOR.has(n)?1:SEMI.has(n)?2:3;  // 最も引いた地図で名前を出す駅
 const TOUCH=matchMedia('(pointer:coarse)').matches,TP=TOUCH?26:16;  // v24: 指で押す端末では、反応する範囲を広げる
 const markers={},hits={};
 // 駅の表示位置：駅の座標にいちばん近い線路上の点（300m以内のときだけ寄せる）
@@ -929,11 +953,12 @@ function snapLL(s){
     if(d<bd){bd=d;best=[qy,qx/k];}}
   return best&&Math.sqrt(bd)*111000<300?best:s.ll;
 }
-const dotR=()=>{const z=map.getZoom();return z<11?2.5:z<13?3:z<15?4:5;};
+const dotR=()=>Math.max(2.2,Math.min(6.8,2.2+(map.getZoom()-9)*.55));   // v24: 拡大に合わせて連続的に変える
+const dsc=()=>Math.max(.5,Math.min(1.2,.55+.075*(map.getZoom()-9)));      // 店・遊び場の点の倍率(拡大15で1.0)
 STATIONS.forEach(s=>{
   const at=snapLL(s);s.at=at;
   const m=L.circleMarker(at,{pane:'markerPane',radius:dotR(),weight:1.5,bubblingMouseEvents:false});
-  m.bindTooltip(s.n,{permanent:true,direction:'right',offset:[4,0],className:'st-label'+(MAJOR.has(s.n)?'':' minor')});
+  m.bindTooltip(s.n,{permanent:true,direction:'right',offset:[4,0],className:'st-label'+(tierOf(s.n)===1?'':tierOf(s.n)===2?' t2':' t3')});
   const h=L.circleMarker(at,{pane:'markerPane',radius:TOUCH?26:18,stroke:false,fillOpacity:0,bubblingMouseEvents:false});
   const click=e=>{if(quiz&&quiz.i<quiz.qs.length) return; if(pinView&&pinView.mode==='pick'){pickAt(e.latlng);return;} if(town){if(s.n!==town)enterTown(s.n);return;} openStation(s.n);};
   m.on('click',click);h.on('click',click);
@@ -943,6 +968,23 @@ STATIONS.forEach(s=>{
   const te=m.getTooltip().getElement();te.classList.add('leaflet-interactive');L.DomEvent.on(te,'click',e=>{L.DomEvent.stop(e);click({latlng:L.latLng(s.ll)});});
 });
 // v24: 駅名どうしが重ならないように、点の右・上・下・左から空いている位置を選ぶ（中央線のように駅が一直線に並ぶ区間で重なるため）
+// v24: 自分の今いる場所を、いつも地図に出す（青い点と、誤差の範囲）。右上の「現在地」ボタンで、そこへ移動する
+const meLayer=L.layerGroup().addTo(map);var ME=null,meWatch=null,meCircle=null,meDot=null;
+function meDraw(){
+  if(!ME)return;
+  if(!meDot)meDot=L.marker(ME.ll,{icon:L.divIcon({className:'',iconSize:[26,26],iconAnchor:[13,13],html:'<div class="medot"><i></i></div>'}),interactive:false,keyboard:false,zIndexOffset:2000}).addTo(meLayer);
+  else meDot.setLatLng(ME.ll);
+  if(ME.acc>0&&ME.acc<800){
+    if(!meCircle)meCircle=L.circle(ME.ll,{radius:ME.acc,color:css('--accent'),weight:1,opacity:.5,fillColor:css('--accent'),fillOpacity:.1,interactive:false}).addTo(meLayer);
+    else{meCircle.setLatLng(ME.ll);meCircle.setRadius(ME.acc);}
+  }
+}
+function meStart(){
+  if(meWatch!==null||inArtifact||!navigator.geolocation)return;
+  try{meWatch=navigator.geolocation.watchPosition(p=>{ME={ll:[p.coords.latitude,p.coords.longitude],acc:p.coords.accuracy||0,t:Date.now()};meDraw();},e=>{if(e.code===1)meStop();},{enableHighAccuracy:false,maximumAge:20000,timeout:30000});}catch(e){}
+}
+function meStop(){if(meWatch!==null){try{navigator.geolocation.clearWatch(meWatch);}catch(e){}meWatch=null;}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')meStart();else if(!walk)meStop();});
 // v24: 駅名の文字を押しても、その駅が開くようにする。文字の要素が作り直されても効くように、地図全体で受ける
 {const mc=document.getElementById('map');
  const hit=e=>{const el=e.target&&e.target.closest&&e.target.closest('.st-label');if(!el)return;
@@ -959,17 +1001,19 @@ function lineDir(s){
   return {x:pb.x-pa.x,y:pb.y-pa.y};
 }
 function layoutLabels(){
-  if(typeof markers==='undefined'||map.getZoom()<12.5)return;
+  if(typeof markers==='undefined'||map.getZoom()<12)return;
   const z=map.getZoom(),r0=dotR(),placed=[],P={};
   const ov=(a,b)=>a.x<b.x+b.w&&b.x<a.x+a.w&&a.y<b.y+b.h&&b.y<a.y+a.h;
   const order=STATIONS.slice().sort((a,b)=>(b.n===sel)-(a.n===sel));
   for(const s of order){const m=markers[s.n];if(!m)continue;const p=map.latLngToContainerPoint(m.getLatLng());P[s.n]=p;
     placed.push({x:p.x-r0-1,y:p.y-r0-1,w:2*r0+2,h:2*r0+2,d:s.n});}
   // v24: 文字は、重ならない範囲でできるだけ大きく（大→小の順に試して、置けた大きさにする。最小は12px）
-  const SIZES=z<13.5?[15,14,13,12]:[17,16,15,14,13,12],PAD=8,g=r0+3;
+  const topFs=Math.round(Math.max(11,Math.min(18,10+(z-10)*1.25))),SIZES=[];for(let f=topFs;f>=11;f--)SIZES.push(f);
+  const PAD=8,g=r0+3;
   const area=(rc,self)=>placed.reduce((a,q)=>{if(q.d===self||!ov(rc,q))return a;return a+(Math.min(rc.x+rc.w,q.x+q.w)-Math.max(rc.x,q.x))*(Math.min(rc.y+rc.h,q.y+q.h)-Math.max(rc.y,q.y));},0);
   for(const s of order){
     const m=markers[s.n],t=m&&m.getTooltip(),p=P[s.n];if(!t||!p)continue;
+    if(tierOf(s.n)>(z<12?1:z<13?2:3)&&s.n!==sel)continue;   // この拡大では出さない駅は、場所を取らない
     const el=t.getElement(),big=s.n===sel;
     // 路線が横向きの駅は、文字が線の上に乗らないよう上下に置く（隣の駅と交互にして、並びを崩さない）。縦向きの駅は左右に置く。
     const o=lineDir(s),horiz=o&&Math.abs(o.x)>=Math.abs(o.y)*.7;
@@ -992,9 +1036,9 @@ function layoutLabels(){
   // 区市名などの地名は、駅名や点、ほかの地名と重なるものを隠す
   const mr=[];
   for(const mt of MUNI_TIPS){const el=mt.tt.getElement();if(!el)continue;
-    const c=map.latLngToContainerPoint(mt.c),w=mt.n.length*15+4,h=17,rc={x:c.x-w/2,y:c.y-h/2,w,h,d:'~'+mt.n};
+    const mfs=Math.round(Math.max(11,Math.min(15,9+(z-10)*1))),c=map.latLngToContainerPoint(mt.c),w=mt.n.length*(mfs+3)+4,h=mfs+5,rc={x:c.x-w/2,y:c.y-h/2,w,h,d:'~'+mt.n};
     const hide=placed.some(q=>ov(rc,q))||mr.some(q=>ov(rc,q));
-    el.style.visibility=hide?'hidden':'';
+    el.style.visibility=hide?'hidden':'';el.style.fontSize=mfs+'px';
     if(!hide)mr.push(rc);
   }
 }
@@ -1022,7 +1066,7 @@ function styleMarkers(){
 function zoomLabels(){
   const z=map.getZoom(),c=document.getElementById('map').classList;
   const hideMuni=quiz&&quiz.i<quiz.qs.length&&!quiz.answered&&quiz.qs[quiz.i].m==='muni';
-  c.toggle('hide-st',false);c.toggle('far',z<12.5);c.toggle('muni-off',z<12.5||hideMuni);
+  c.toggle('hide-st',false);c.toggle('far',z<12);c.toggle('mid',z<13);c.toggle('muni-off',z<12.5||hideMuni);
 }
 map.on('zoomend',()=>{zoomLabels();styleMarkers();});
 document.head.insertAdjacentHTML('beforeend','<style>.hide-st .st-label.sel{display:block!important}</style>');
@@ -1424,7 +1468,7 @@ function dStyles0(z){
   return [['g','fill',{f:css('--park')}],['w','fill',{f:css('--water')}],['wl','line',{c:css('--water'),lw:4}],
     ['r2','line',{c:css('--bldgline'),lw:6}],['r1','line',{c:css('--bldgline'),lw:9}],['r3','line',{c:css('--road'),lw:2.5}],
     ['r2','line',{c:css('--road'),lw:4}],['r1','line',{c:css('--road1'),lw:7}],
-    ['b','fill',{f:css('--bldg'),c:b?css('--bldgline'):null,lw:.8}],['rl','line',{c:css('--ink2'),lw:2,dash:[7,5]}]].filter(s=>s[0]!=='rl'||z>=16);
+    ['b','fill',{f:css('--bldg'),c:z>=14?(b?css('--bldgline'):css('--land')):null,lw:b?.8:1.2}],['rl','line',{c:css('--ink2'),lw:2,dash:[7,5]}]].filter(s=>s[0]!=='rl'||z>=16);
 }
 // 描画待ちのタイルを、1フレーム約8msずつ処理する（固まらないように）
 const drawQ=[];let drawing=false;
@@ -1775,7 +1819,8 @@ function styleDots(){
     if(!dotLayer.hasLayer(m))dotLayer.addLayer(m);
     // 行きたい＝金色の太い縁、行った＝濃い縁（印のある点は少し大きく）
     const ring=mk==='w'?{color:css('--want'),weight:3}:mk==='v'?{color:css('--ink'),weight:2.5}:null;
-    m.setStyle(st.startsWith('sel')?{radius:10,weight:3.5,color:accent}:Object.assign(st.startsWith('hi')?{radius:7.5,weight:2.5,color:panel}:{radius:mk?6.5:5,weight:1.5,color:panel},ring||{}));
+    const K=dsc();
+    m.setStyle(st.startsWith('sel')?{radius:10*K,weight:3.5,color:accent}:Object.assign(st.startsWith('hi')?{radius:7.5*K,weight:2.5,color:panel}:{radius:(mk?6.5:5)*K,weight:1.5,color:panel},ring||{}));
     if(!st.startsWith('n')||mk)m.bringToFront();
   });
   // 選んでいる施設には波紋の印
@@ -1794,6 +1839,7 @@ function refreshRecs(){
   else{if(dotLayer&&map.hasLayer(dotLayer))map.removeLayer(dotLayer);selLayer.clearLayers();dotKey='';}
 }
 map.on('zoomend',refreshRecs);
+map.on('zoomend',()=>{document.documentElement.style.setProperty('--zs',dsc().toFixed(2));if(dotLayer&&map.hasLayer(dotLayer)){dotKey='';dotAll.forEach(m=>{m._st=null;});styleDots();}});
 function openRec(id){
   const r=RECS.find(x=>x.id===id);if(!r)return;
   setMapOnly(false);panel.classList.remove('collapsed');
@@ -2488,11 +2534,15 @@ const ICON={spot:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" st
 // 地図の右上（拡大縮小の下）に、設定とテーマ切り替えのボタン
 const ctl=L.control({position:'topright'});
 ctl.onAdd=()=>{const d=L.DomUtil.create('div','leaflet-bar mapctl');
-  d.innerHTML=`<a href="#" role="button" id="btn-spots" title="スポットを表示" aria-label="スポットを表示">${ICON.spot}</a><a href="#" role="button" id="btn-theme" title="ライト／ダークを切り替え"></a><a href="#" role="button" id="btn-settings" title="設定" aria-label="設定">${ICON.gear}</a>`;
+  d.innerHTML=`<a href="#" role="button" id="btn-me" title="現在地" aria-label="現在地へ移動"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></a><a href="#" role="button" id="btn-spots" title="スポットを表示" aria-label="スポットを表示">${ICON.spot}</a><a href="#" role="button" id="btn-theme" title="ライト／ダークを切り替え"></a><a href="#" role="button" id="btn-settings" title="設定" aria-label="設定">${ICON.gear}</a>`;
   L.DomEvent.disableClickPropagation(d);return d;};
 ctl.addTo(map);
 function paintThemeBtn(){const b=document.getElementById('btn-theme');if(!b)return;const dk=isDark();b.innerHTML=dk?ICON.sun:ICON.moon;b.setAttribute('aria-label',dk?'ライトモードにする':'ダークモードにする');}
 document.getElementById('btn-theme').onclick=e=>{e.preventDefault();setTheme(isDark()?'light':'dark');};
+document.getElementById('btn-me').onclick=e=>{e.preventDefault();
+  if(inArtifact||!navigator.geolocation){toast('この画面では現在地を使えません。'+PAGES_URL+' で開くと使えます');return;}
+  meStart();
+  if(ME){map.flyTo(ME.ll,Math.max(map.getZoom(),15),{duration:.6});}else toast('現在地を確認しています…');};
 document.getElementById('btn-settings').onclick=e=>{e.preventDefault();openSettings();};
 matchMedia('(prefers-color-scheme: dark)').addEventListener&&matchMedia('(prefers-color-scheme: dark)').addEventListener('change',paintThemeBtn);
 applyTheme();
@@ -2846,7 +2896,28 @@ new MutationObserver(retheme).observe(document.documentElement,{attributes:true,
 
 render();
 // v24: 再読み込みしたとき、いったん全体地図を出してから拡大位置へ飛ぶ動きをなくす。URLの#t…（街）があれば、最初から その街を表示する
+// 戻る（Androidの戻るボタン、ブラウザの戻る）。上にあるものから順に閉じて、最後に全体地図へ戻る。何もないときは false
+function goBack(){
+  try{
+    if(typeof vw!=='undefined'&&vw){closeViewer();return true;}
+    if(map._popup){map.closePopup();return true;}
+    if(settingsOpen){settingsOpen=false;render();return true;}
+    if(town&&pinView&&pinView.mode!=='list'){if(pinView.mode==='pick'||pinView.mode==='form')cancelDraft();pinView={mode:'list'};render();body.scrollTop=0;return true;}
+    if(town){exitTown();return true;}
+    if(tab==='rec'&&walkView){walkView=null;render();return true;}
+    if(quiz){quiz=null;clearGuess();render();return true;}
+    if(sel){sel=null;render();return true;}
+    if(tab!=='zukan'){setTab('zukan');return true;}
+    if(document.body.classList.contains('maponly')){setMapOnly(false);return true;}
+    if(map.getZoom()>11.5){fitAll();return true;}
+  }catch(e){}
+  return false;
+}
+if(NATIVE){try{window.Capacitor.registerPlugin('App').addListener('backButton',()=>{goBack();});}catch(e){}}
+else{try{history.pushState({e:1},'');addEventListener('popstate',()=>{goBack();try{history.pushState({e:1},'');}catch(e){}});}catch(e){}}
 window.__boot=true;setTimeout(()=>{window.__boot=false;},4000);
+function hideBoot(){const b=document.getElementById('boot');if(b){b.classList.add('done');setTimeout(()=>{try{b.remove();}catch(e){}},600);}}
+setTimeout(hideBoot,7000);   // 何かあっても、読み込み中の画面を出しっぱなしにしない
 {const bh=/^#t(\d+)$/.exec(location.hash),bg=/^#([sp]\d+)$/.exec(location.hash);
  setTimeout(()=>{map.invalidateSize();
    if(bh&&STATIONS[+bh[1]])map.setView(BY[STATIONS[+bh[1]].n].ll,16,{animate:false});
@@ -2858,7 +2929,8 @@ openDB().then(async d=>{idb=d;try{PINS=(await store('all','pins'))||[];}catch(e)
   if(h&&STATIONS[+h[1]])enterTown(STATIONS[+h[1]].n);
   else if(g){g[1][0]==='s'?openShop(g[1]):openPlay(g[1]);}  // v22: 共有リンク（#s123 / #p45）からその店・遊び場を開く
   else render();
-  setTimeout(()=>{window.__boot=false;},400);});
+  setTimeout(()=>{window.__boot=false;},400);
+  hideBoot();meStart();});
 })();
 </script>
 
