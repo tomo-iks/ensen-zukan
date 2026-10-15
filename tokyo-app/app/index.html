@@ -4,9 +4,9 @@
 #boot{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#F4F2EC;color:#1F2629;font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",sans-serif;transition:opacity .45s ease}
 @media (prefers-color-scheme: dark){#boot{background:#121619;color:#E6ECEE}}
 #boot.done{opacity:0;pointer-events:none}
-#boot{overflow:hidden;display:block;animation:bootout .45s linear 7.35s forwards}
-#boot .jp{animation:jphide .6s linear 4s forwards}@keyframes jphide{99%{opacity:0}to{opacity:0;visibility:hidden}}   /* 後半は、日本地図を描かない(描画を軽くし、ちらつきを防ぐ) */
-@keyframes bootout{to{opacity:0;visibility:hidden;transform:scale(2.2)}}
+#boot{overflow:hidden;display:block;animation:bootout .45s linear 6.15s forwards}
+#boot .jp{display:none}@keyframes jphide{99%{opacity:0}to{opacity:0;visibility:hidden}}   /* 後半は、日本地図を描かない(描画を軽くし、ちらつきを防ぐ) */
+@keyframes bootout{to{opacity:0;visibility:hidden;transform:scale(var(--fz,2.2))}}
 #boot .bsv{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
 #boot .bcv{position:absolute;left:0;top:0;width:100%;height:100%}
 #boot.cv .bsv{display:none}
@@ -81,8 +81,8 @@ window.__V=(function(){
   var s0=Math.min(.9*vw/JW,.72*vh/JH);                                       // 最初: 日本地図(北が上)が、画面に収まる
   var t0={x:C.x-O.x-s0*(Jc.x-O.x),y:C.y-O.y-s0*(Jc.y-O.y)};
   var tA={x:C.x-O.x,y:C.y-O.y};                                              // 前半の終わり: 東京の中心が、画面の中央
-  var FMAX=4,Zmax=Math.floor(Math.log(FMAX*WT*360/(256*TS))/Math.LN2*2)/2;   // 演出の終点の拡大は、約4倍まで(GPUで合成して動かせる範囲)
-  var Z=Math.min(window.__V.Z,Math.max(10,Zmax));window.__V.Zo=Z;window.__V.k=256*Math.pow(2,Z)/360;
+  var FMAX=6,Zmax=Math.floor(Math.log(FMAX*WT*360/(256*TS))/Math.LN2*2)/2;   // 演出の終点の拡大は、約4倍まで(GPUで合成して動かせる範囲)
+  var Z=Math.min(window.__V.Z,Math.max(10,Zmax));window.__V.Zo=Z;window.__V.k=256*Math.pow(2,Z)/360;b.style.setProperty('--fz',Math.pow(2,Math.max(0,window.__V.Z-Z)));
   var sB=ppu*(256*Math.pow(2,Z)/360)*TS/WT;                           // 後半の終わり: アプリの地図(拡大11.5)と同じ縮尺
   var V=window.__V,dest={x:vw/2+(139.7006-V.lng)*V.k,y:vh/2+(V.my(V.lat)-V.my(35.6896))*V.k};   // 新宿が、アプリの地図で来る位置                                                // 新宿が、アプリの地図で来る位置
   var tB={x:dest.x-O.x-sB*(Sj.x-O.x),y:dest.y-O.y-sB*(Sj.y-O.y)};
@@ -171,13 +171,13 @@ window.__V=(function(){
       if(window.__goDone)window.__bootGo();
     }catch(e){var c=document.querySelector('#boot canvas.bcv');if(c)c.remove();var bb=document.getElementById('boot');if(bb)bb.classList.remove('cv');}
   })();
-  var TP=4.4;   // 後半(回転・拡大)の開始。前半(日本→東京が縦)は0〜3秒、区は3〜4.4秒に作り、そのあとで回り始める
+  var TP=3.2;   // 回転・拡大の開始。0〜3秒は、縦向きの東京が徐々に出来上がる(日本全体からの拡大は、なし)
   (function(){
     [].forEach.call(sv.querySelectorAll('path.bw'),function(p){
-      var d=parseFloat((p.style.animationDelay||'0').split(',')[0])||0,nd=3+(d-1.15)*(1.4/1.23);
+      var d=parseFloat((p.style.animationDelay||'0').split(',')[0])||0,nd=.3+(d-1.15)*(1.9/1.23);
       p.style.animationDelay=p.classList.contains('nf')?nd.toFixed(2)+'s,'+TP+'s':nd.toFixed(2)+'s';});
-    [].forEach.call(sv.querySelectorAll('path.br'),function(p){p.style.animationDelay=(p.classList.contains('jy')?4.0:4.2)+'s';});
-    [].forEach.call(sv.querySelectorAll('circle.bd'),function(c){var d=parseFloat((c.style.animationDelay||'0').split(',')[0])||0;c.style.animationDelay=(4.5+(d-2.55)*1.1).toFixed(2)+'s';});
+    [].forEach.call(sv.querySelectorAll('path.br'),function(p){p.style.animationDelay=(p.classList.contains('jy')?1.9:2.1)+'s';});
+    [].forEach.call(sv.querySelectorAll('circle.bd'),function(c){var d=parseFloat((c.style.animationDelay||'0').split(',')[0])||0;c.style.animationDelay=(2.45+(d-2.55)*1.0).toFixed(2)+'s';});
   })();
   var N=60,ease=function(x){return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;},L=function(p,q,y){return p+(q-p)*y;},kf1='@keyframes bcamj{',kf2='@keyframes bwrap{',i,y,x;
   for(i=0;i<=N;i++){x=i/N;y=ease(x);kf1+=(x*100).toFixed(3)+'%{transform:translate('+L(t0.x,tA.x,y)+'px,'+L(t0.y,tA.y,y)+'px) rotate('+(90*y)+'deg) scale('+(s0*Math.pow(ppu/s0,y))+')}';}
@@ -191,13 +191,13 @@ window.__V=(function(){
         ux=tx-sr*(rc*tA.x-rs*tA.y),uy=ty-sr*(rs*tA.x+rc*tA.y);
     kf2+=(x*100).toFixed(3)+'%{transform:translate('+ux+'px,'+uy+'px) rotate('+(-90*y)+'deg) scale('+sr+')}';}
   var w=document.createElement('div');w.className='bwrap';sv.parentNode.insertBefore(w,sv);w.appendChild(sv);
-  var st=document.createElement('style');st.textContent=kf1+'}'+kf2+'}#boot svg.bsv g.cam{animation:bcamj 3s linear forwards}#boot .bwrap{animation:bwrap 3s linear '+TP+'s forwards}';document.head.appendChild(st);
+  var st=document.createElement('style');st.textContent=kf1+'}'+kf2+'}#boot svg.bsv g.cam{animation:none}#boot .bwrap{animation:bwrap 3s linear '+TP+'s forwards}';document.head.appendChild(st);
 })();
 </script>
 <script>
 window.__bootErr=null;
 window.__goQ=[];
-window.__go=function(){var b=document.getElementById('boot');if(b)b.classList.add('go');setTimeout(function(){try{if(window.__finalView)window.__finalView();}catch(e){}},7300);window.__goDone=1;try{if(window.__bootGo)window.__bootGo();}catch(e){}var q=window.__goQ;window.__goQ=null;if(q)q.forEach(function(a){setTimeout(a[0],a[1]+7800);});};
+window.__go=function(){var b=document.getElementById('boot');if(b)b.classList.add('go');setTimeout(function(){try{if(window.__finalView)window.__finalView();}catch(e){}},6150);window.__goDone=1;try{if(window.__bootGo)window.__bootGo();}catch(e){}var q=window.__goQ;window.__goQ=null;if(q)q.forEach(function(a){setTimeout(a[0],a[1]+6700);});};
 window.afterBoot=function(f,m){if(window.__goQ)window.__goQ.push([f,m||0]);else setTimeout(f,m||0);};
 setTimeout(window.__go,15000);
 window.addEventListener('error',function(e){if(!window.__bootErr)window.__bootErr=String(e.message||'')+(e.filename?' @'+String(e.filename).split('/').pop()+':'+e.lineno:'');});
