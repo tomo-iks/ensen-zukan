@@ -58,6 +58,7 @@ button{cursor:pointer}
 .leaflet-tooltip.muni-label::before{display:none}
 .leaflet-tooltip.st-label.sel{font-size:17px;color:var(--accent)}
 .hide-st .st-label{display:none}
+.far .st-label.minor{display:none}.far .st-label.minor.sel{display:block}
 .leaflet-tooltip.st-label.leaflet-tooltip-top,.leaflet-tooltip.st-label.leaflet-tooltip-bottom{padding:8px 10px;margin-left:0}
 .leaflet-tooltip.st-label.leaflet-tooltip-left{padding:10px 6px 10px 12px;margin-left:-2px}
 /* v24: 小さな印も、見えない余白をつけて押しやすくする */
@@ -915,6 +916,7 @@ const rails={
 [linePts(YAMANOTE,true),linePts(CHUO,false)].forEach(pts=>{for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],n=Math.ceil(km(a,b)/.1);
   for(let k=0;k<=n;k++){const m=muniAt([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);if(m)LINE_MUNI.add(m);}}});
 
+const MAJOR=new Set(['東京','新宿','渋谷','池袋','上野','品川','秋葉原','中野','吉祥寺','立川']);  // 最も引いた地図で名前を出す駅
 const TOUCH=matchMedia('(pointer:coarse)').matches,TP=TOUCH?26:16;  // v24: 指で押す端末では、反応する範囲を広げる
 const markers={},hits={};
 // 駅の表示位置：駅の座標にいちばん近い線路上の点（300m以内のときだけ寄せる）
@@ -931,7 +933,7 @@ const dotR=()=>{const z=map.getZoom();return z<11?2.5:z<13?3:z<15?4:5;};
 STATIONS.forEach(s=>{
   const at=snapLL(s);s.at=at;
   const m=L.circleMarker(at,{pane:'markerPane',radius:dotR(),weight:1.5,bubblingMouseEvents:false});
-  m.bindTooltip(s.n,{permanent:true,direction:'right',offset:[4,0],className:'st-label'});
+  m.bindTooltip(s.n,{permanent:true,direction:'right',offset:[4,0],className:'st-label'+(MAJOR.has(s.n)?'':' minor')});
   const h=L.circleMarker(at,{pane:'markerPane',radius:TOUCH?26:18,stroke:false,fillOpacity:0,bubblingMouseEvents:false});
   const click=e=>{if(quiz&&quiz.i<quiz.qs.length) return; if(pinView&&pinView.mode==='pick'){pickAt(e.latlng);return;} if(town){if(s.n!==town)enterTown(s.n);return;} openStation(s.n);};
   m.on('click',click);h.on('click',click);
@@ -1020,7 +1022,7 @@ function styleMarkers(){
 function zoomLabels(){
   const z=map.getZoom(),c=document.getElementById('map').classList;
   const hideMuni=quiz&&quiz.i<quiz.qs.length&&!quiz.answered&&quiz.qs[quiz.i].m==='muni';
-  c.toggle('hide-st',z<12.5);c.toggle('muni-off',z<11.5||hideMuni);
+  c.toggle('hide-st',false);c.toggle('far',z<12.5);c.toggle('muni-off',z<12.5||hideMuni);
 }
 map.on('zoomend',()=>{zoomLabels();styleMarkers();});
 document.head.insertAdjacentHTML('beforeend','<style>.hide-st .st-label.sel{display:block!important}</style>');
@@ -1418,11 +1420,11 @@ function loadTile(k,cb){
 const dStyleMemo={};
 function dStyles(z){if(dStyleMemo[z])return dStyleMemo[z];return dStyleMemo[z]=dStyles0(z);}
 function dStyles0(z){
-  const b=z>=15;
+  const b=z>=17;
   return [['g','fill',{f:css('--park')}],['w','fill',{f:css('--water')}],['wl','line',{c:css('--water'),lw:4}],
     ['r2','line',{c:css('--bldgline'),lw:6}],['r1','line',{c:css('--bldgline'),lw:9}],['r3','line',{c:css('--road'),lw:2.5}],
     ['r2','line',{c:css('--road'),lw:4}],['r1','line',{c:css('--road1'),lw:7}],
-    ['b','fill',{f:css('--bldg'),c:b?css('--bldgline'):null,lw:.8}],['rl','line',{c:css('--ink2'),lw:2,dash:[7,5]}]];
+    ['b','fill',{f:css('--bldg'),c:b?css('--bldgline'):null,lw:.8}],['rl','line',{c:css('--ink2'),lw:2,dash:[7,5]}]].filter(s=>s[0]!=='rl'||z>=16);
 }
 // 描画待ちのタイルを、1フレーム約8msずつ処理する（固まらないように）
 const drawQ=[];let drawing=false;
@@ -1438,7 +1440,7 @@ const DetailLayer=L.GridLayer.extend({
   _getTiledPixelBounds(center){const b=L.GridLayer.prototype._getTiledPixelBounds.call(this,center),s=this.getTileSize();return L.bounds(b.min.subtract(s),b.max.add(s));},
   createTile(co,done){
     const ck='d'+co.z+'/'+co.x+'/'+co.y,hit=tcGet(ck);if(hit&&!hit.isConnected){setTimeout(()=>done(null,hit),0);return hit;}
-    const size=this.getTileSize(),dpr=Math.min(co.z>=16?2:co.z>=15?1.5:1,window.devicePixelRatio||1),cv=document.createElement('canvas');cv._ck=ck;
+    const size=this.getTileSize(),dpr=Math.min(co.z>=16?3:2,window.devicePixelRatio||1),cv=document.createElement('canvas');cv._ck=ck;
     cv.width=size.x*dpr;cv.height=size.y*dpr;
     const nw=map.unproject(co.scaleBy(size),co.z),se=map.unproject(co.add([1,1]).scaleBy(size),co.z);
     const keys=[];for(let i=Math.floor(se.lat/TDLAT);i<=Math.floor(nw.lat/TDLAT);i++)for(let j=Math.floor(nw.lng/TDLNG);j<=Math.floor(se.lng/TDLNG);j++){const k=i+'_'+j;if(TILESET.has(k))keys.push(k);}
@@ -1457,7 +1459,7 @@ function makeJob(cv,co,size,dpr,keys,nw,se,done){
   const st=dStyles(z),m=(se.lat-nw.lat)*.02,pxLng=size.x/(se.lng-nw.lng),pxLat=size.y/(nw.lat-se.lat),tiny=z<16;let si=0;
   const feats=n=>{const out=[],seen=new Set();for(const k of keys){const T=tileData[k];if(!T)continue;const L2=T.R[n];
     const r0=Math.max(0,Math.floor((se.lat-T.o0)/TDLAT*TGRID)),r1=Math.min(TGRID-1,Math.floor((nw.lat-T.o0)/TDLAT*TGRID)),c0=Math.max(0,Math.floor((nw.lng-T.o1)/TDLNG*TGRID)),c1=Math.min(TGRID-1,Math.floor((se.lng-T.o1)/TDLNG*TGRID));
-    for(let r=r0;r<=r1;r++)for(let c=c0;c<=c1;c++)for(const it of L2.cells[r*TGRID+c]){if(seen.has(it)||it.n<se.lat+m||it.s>nw.lat-m||it.e<nw.lng||it.w>se.lng)continue;seen.add(it);if(tiny&&n==='b'&&(it.e-it.w)*pxLng<1.5&&(it.n-it.s)*pxLat<1.5)continue;out.push(it);}}return out;};
+    for(let r=r0;r<=r1;r++)for(let c=c0;c<=c1;c++)for(const it of L2.cells[r*TGRID+c]){if(seen.has(it)||it.n<se.lat+m||it.s>nw.lat-m||it.e<nw.lng||it.w>se.lng)continue;seen.add(it);if(tiny&&n==='b'&&(it.e-it.w)*pxLng<4&&(it.n-it.s)*pxLat<4)continue;out.push(it);}}return out;};
   // v24: 1回の仕事で描く量を頂点数で区切る（建物などが多い種類を一度に描くと、1回で数百ミリ秒止まるため）
   let fo=0,cur=null;const CHUNK=2500;
   return {run(){
@@ -1783,7 +1785,7 @@ function styleDots(){
 function refreshRecs(){
   const quizOn=!!(quiz&&quiz.i<quiz.qs.length),zz=map.getZoom();
   const show=showRec&&!quizOn&&(!!town||zz>=13),key=show+'|'+season;   // 季節のおすすめのピン
-  const showDots=!quizOn&&(show||!!town||zz>=15);                         // v24: 店・遊び場の点は、拡大15以上では押さなくても出す
+  const showDots=!quizOn&&(!!town||zz>=15);                         // v24: 店・遊び場の点は、拡大15以上では押さなくても出す
   const focus=!!dotMode();
   if(key+focus!==recKey){recKey=key+focus;recLayer.clearLayers();
     if(show&&!focus)recsFor(null).forEach(r=>{const m=L.marker(r.ll,{icon:recIcon(r.cat),title:r.n,bubblingMouseEvents:false,zIndexOffset:-200});
