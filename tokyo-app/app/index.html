@@ -76,7 +76,7 @@ window.__V=(function(){
   s.setProperty('--tAx',px(tA.x));s.setProperty('--tAy',px(tA.y));
   s.setProperty('--tBx',px(tB.x));s.setProperty('--tBy',px(tB.y));
   // 拡大は「倍率が等間隔」で進むように、途中のコマを作る(1次元の補間だと、最初に急に寄ってしまうため)
-  var N=12,ease=function(x){return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;},L=function(p,q,y){return p+(q-p)*y;},kf1='@keyframes bcamj{',kf2='@keyframes bwrap{',i,y,x,th,sg,c,sn;
+  var N=60,ease=function(x){return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;},L=function(p,q,y){return p+(q-p)*y;},kf1='@keyframes bcamj{',kf2='@keyframes bwrap{',i,y,x,th,sg,c,sn;
   for(i=0;i<=N;i++){x=i/N;y=ease(x);kf1+=(x*100).toFixed(2)+'%{transform:translate('+L(t0.x,tA.x,y)+'px,'+L(t0.y,tA.y,y)+'px) rotate('+(90*y)+'deg) scale('+(s0*Math.pow(ppu/s0,y))+')}';}
   // 後半: 前半の終わりの絵を、そのまま回して拡大する(外側の要素の transform = 全体 ∘ 前半終わりの逆)
   for(i=0;i<=N;i++){x=i/N;y=ease(x);
