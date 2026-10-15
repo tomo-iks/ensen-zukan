@@ -935,11 +935,18 @@ STATIONS.forEach(s=>{
   const h=L.circleMarker(at,{pane:'markerPane',radius:TOUCH?26:18,stroke:false,fillOpacity:0,bubblingMouseEvents:false});
   const click=e=>{if(quiz&&quiz.i<quiz.qs.length) return; if(pinView&&pinView.mode==='pick'){pickAt(e.latlng);return;} if(town){if(s.n!==town)enterTown(s.n);return;} openStation(s.n);};
   m.on('click',click);h.on('click',click);
+  (window.__stclick=window.__stclick||{})[s.n]=click;
   m.addTo(map);h.addTo(map);markers[s.n]=m;hits[s.n]=h;
   // 駅名の文字を押しても選べるようにする（v15）
   const te=m.getTooltip().getElement();te.classList.add('leaflet-interactive');L.DomEvent.on(te,'click',e=>{L.DomEvent.stop(e);click({latlng:L.latLng(s.ll)});});
 });
 // v24: 駅名どうしが重ならないように、点の右・上・下・左から空いている位置を選ぶ（中央線のように駅が一直線に並ぶ区間で重なるため）
+// v24: 駅名の文字を押しても、その駅が開くようにする。文字の要素が作り直されても効くように、地図全体で受ける
+{const mc=document.getElementById('map');
+ const hit=e=>{const el=e.target&&e.target.closest&&e.target.closest('.st-label');if(!el)return;
+   const n=el.textContent.trim(),fn=window.__stclick&&window.__stclick[n];if(!fn)return;
+   e.stopPropagation();e.preventDefault&&e.preventDefault();fn({latlng:L.latLng(BY[n].ll)});};
+ mc.addEventListener('click',hit,true);}
 // その駅での路線の向き（前後の駅を結ぶ線の向き）を、画面上の座標で返す
 function lineDir(s){
   const ln=s.lines&&s.lines[0];if(!ln||!LN[ln.l])return null;
@@ -1049,9 +1056,9 @@ document.getElementById('handle').onclick=()=>panel.classList.toggle('collapsed'
 // v24: 地図のみの表示で、点の種類をボタン1つで切り替える（すべて → 食事だけ → 遊び場だけ）
 const DOTKINDS=[['all','点：すべて'],['food','点：食事だけ'],['play','点：遊び場だけ']];
 const dotKindBtn=document.createElement('button');dotKindBtn.id='dotkind';dotKindBtn.type='button';document.body.appendChild(dotKindBtn);
-function paintDotKind(){const k=S.ui.dotKind||'all';dotKindBtn.textContent=(DOTKINDS.find(x=>x[0]===k)||DOTKINDS[0])[1];}
+function paintDotKind(){const k=(S.ui&&S.ui.dotKind)||'all';dotKindBtn.textContent=(DOTKINDS.find(x=>x[0]===k)||DOTKINDS[0])[1];}
 paintDotKind();
-dotKindBtn.onclick=()=>{const i=DOTKINDS.findIndex(x=>x[0]===(S.ui.dotKind||'all'));S.ui.dotKind=DOTKINDS[(i+1)%DOTKINDS.length][0];save();paintDotKind();dotKey='';if(typeof refreshRecs==='function')refreshRecs();};
+dotKindBtn.onclick=()=>{S.ui=S.ui||{};const i=DOTKINDS.findIndex(x=>x[0]===(S.ui.dotKind||'all'));S.ui.dotKind=DOTKINDS[(i+1)%DOTKINDS.length][0];save();paintDotKind();dotKey='';if(typeof refreshRecs==='function')refreshRecs();};
 function setMapOnly(on){document.body.classList.toggle('maponly',on);const b=document.getElementById('maponly');
   b.setAttribute('aria-pressed',on);b.setAttribute('aria-label',on?'パネルを表示':'地図のみ表示');
   b.innerHTML=on?'<span class="chev">›</span><span class="tx">パネルを表示</span>':'<span class="chev">‹</span><span class="tx">地図のみ</span>';}
