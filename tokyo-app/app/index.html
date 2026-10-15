@@ -424,6 +424,17 @@ button.chip[aria-pressed="true"],.ffilter .chip[aria-pressed="true"]{background:
 .recthumb{border-width:1px!important;border-radius:var(--r)!important}
 .pinm{width:26px;height:26px}
 #toast{border-radius:var(--r)}
+.fpin{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;font:700 14px var(--f-disp);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);transform:scale(var(--zs,1));box-sizing:border-box}
+.fpin.big{width:34px;height:34px;font-size:17px;border-radius:50% 50% 50% 4px;border-width:2.5px}
+.fname{position:absolute;left:38px;top:6px;white-space:nowrap;font:700 12px var(--f-disp);color:var(--ink);background:color-mix(in srgb,var(--panel) 88%,transparent);border-radius:4px;padding:1px 5px;box-shadow:0 0 0 1px var(--rule)}
+.f-uni-n{background:#1F3F8F}.f-uni-p{background:#0E7A7A}.f-uni-s{background:#D9731A}.f-lib{background:#7A4B1F}.f-mus{background:#7B3FA0}.f-kar{background:#D6337A}.f-res{background:#256F4A}.f-uni{background:#1F3F8F}
+.fdot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;flex:none}
+#facbar{position:fixed;z-index:1000;top:64px;right:56px;width:min(300px,calc(100vw - 72px));background:var(--panel);color:var(--ink);border-radius:8px;box-shadow:var(--shadow);padding:10px 12px}
+#facbar[hidden]{display:none}
+#facbar .fb-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+#facbar .chip{display:inline-flex;align-items:center}
+.facpop .tour{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--chip)}
+.facpop .tour h4{margin:0 0 4px;font-size:13px}.facpop .tour p{margin:4px 0;font-size:12px;line-height:1.55}.facpop .tst{font-weight:700;color:var(--accent)}
 .medot{width:26px;height:26px;border-radius:50%;background:rgba(40,96,168,.22);display:grid;place-items:center;animation:mepulse 2.2s ease-out infinite}
 .medot i{display:block;width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45)}
 @keyframes mepulse{0%{box-shadow:0 0 0 0 rgba(40,96,168,.35)}100%{box-shadow:0 0 0 16px rgba(40,96,168,0)}}
@@ -2603,7 +2614,7 @@ const ICON={spot:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" st
 // 地図の右上（拡大縮小の下）に、設定とテーマ切り替えのボタン
 const ctl=L.control({position:'topright'});
 ctl.onAdd=()=>{const d=L.DomUtil.create('div','leaflet-bar mapctl');
-  d.innerHTML=`<a href="#" role="button" id="btn-me" title="現在地" aria-label="現在地へ移動"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></a><a href="#" role="button" id="btn-spots" title="スポットを表示" aria-label="スポットを表示">${ICON.spot}</a><a href="#" role="button" id="btn-theme" title="ライト／ダークを切り替え"></a><a href="#" role="button" id="btn-settings" title="設定" aria-label="設定">${ICON.gear}</a>`;
+  d.innerHTML=`<a href="#" role="button" id="btn-me" title="現在地" aria-label="現在地へ移動"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></a><a href="#" role="button" id="btn-fac" title="施設のピン(大学・図書館・美術館・カラオケ・研究機関)" aria-label="施設のピンの表示"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.4-6-10a6 6 0 0 1 12 0c0 4.6-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg></a><a href="#" role="button" id="btn-spots" title="スポットを表示" aria-label="スポットを表示">${ICON.spot}</a><a href="#" role="button" id="btn-theme" title="ライト／ダークを切り替え"></a><a href="#" role="button" id="btn-settings" title="設定" aria-label="設定">${ICON.gear}</a>`;
   L.DomEvent.disableClickPropagation(d);return d;};
 ctl.addTo(map);
 function paintThemeBtn(){const b=document.getElementById('btn-theme');if(!b)return;const dk=isDark();b.innerHTML=dk?ICON.sun:ICON.moon;b.setAttribute('aria-label',dk?'ライトモードにする':'ダークモードにする');}
@@ -2615,6 +2626,71 @@ document.getElementById('btn-me').onclick=e=>{e.preventDefault();
 document.getElementById('btn-settings').onclick=e=>{e.preventDefault();openSettings();};
 matchMedia('(prefers-color-scheme: dark)').addEventListener&&matchMedia('(prefers-color-scheme: dark)').addEventListener('change',paintThemeBtn);
 applyTheme();
+// ---------- v24: 施設のピン（大学・図書館・博物館美術館・カラオケ・国立の研究機関） ----------
+// データは facilities.js（OpenStreetMapから作成。駅の周辺）。見学情報は、国立の研究機関のみ（ウェブで調べた内容）
+const FAC_TYPES={
+  'uni-n':{g:'uni',name:'国立大学',ch:'国',big:1,z:11},'uni-p':{g:'uni',name:'公立大学',ch:'公',big:1,z:11},'uni-s':{g:'uni',name:'私立大学',ch:'私',big:1,z:12.5},
+  'lib-t':{g:'lib',name:'図書館（都立・国立）',ch:'図',z:13.5},'lib-p':{g:'lib',name:'図書館（区・市立）',ch:'図',z:13.5},'lib-r':{g:'lib',name:'図書館（私営）',ch:'図',z:13.5},'lib-m':{g:'lib',name:'図書館',ch:'図',z:13.5},
+  'mus':{g:'mus',name:'博物館・美術館',ch:'美',z:13.5},'kar':{g:'kar',name:'カラオケ',ch:'歌',z:14.5},'res':{g:'res',name:'国立の研究機関',ch:'研',big:1,z:11}
+};
+const FAC_GROUPS=[['uni','大学'],['lib','図書館'],['mus','博物館・美術館'],['kar','カラオケ'],['res','国立の研究機関']];
+S.ui.fac=Object.assign({on:['uni','lib','mus','kar','res']},S.ui.fac||{});
+var FAC=null,facState=null;const facLayer=L.layerGroup().addTo(map),facMk=new Map();
+function loadFac(){
+  if(FAC||facState)return;facState='loading';
+  const s=document.createElement('script');s.src='facilities.js';s.async=true;
+  s.onload=()=>{FAC=window.__FAC||[];facState='ok';refreshFac();};s.onerror=()=>{facState='err';};
+  document.head.appendChild(s);
+}
+function facIcon(f,T){
+  const lab=T.big&&map.getZoom()>=(f[0]==='uni-s'?14:12.5)?'<span class="fname">'+esc(f[1])+'</span>':'';
+  const sz=T.big?34:28;
+  return L.divIcon({className:'',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2],html:'<div class="fpin '+(T.big?'big ':'')+'f-'+(f[0].indexOf('lib')===0?'lib':f[0])+'">'+T.ch+'</div>'+lab});
+}
+function refreshFac(){
+  if(!FAC){if(map.getZoom()>=11)loadFac();return;}
+  const z=map.getZoom(),on=new Set(S.ui.fac.on),b=map.getBounds().pad(.25),want=new Map();
+  for(const pass of [1,0]){   // 大学・研究機関を先に(数が多いと、上限で切るため)
+    for(let i=0;i<FAC.length&&want.size<260;i++){
+      const f=FAC[i],T=FAC_TYPES[f[0]];
+      if(!T||!!T.big!==!!pass||!on.has(T.g)||z<T.z||!b.contains([f[2],f[3]]))continue;
+      want.set(i,T);
+    }
+  }
+  facMk.forEach((m,i)=>{if(!want.has(i)||m._z!==Math.round(z*2)){facLayer.removeLayer(m);facMk.delete(i);}});
+  want.forEach((T,i)=>{
+    if(facMk.has(i))return;
+    const f=FAC[i],m=L.marker([f[2],f[3]],{icon:facIcon(f,T),zIndexOffset:T.big?400:100,keyboard:false,title:f[1]});
+    m._z=Math.round(z*2);
+    m.on('click',()=>facPopup(i));m.addTo(facLayer);facMk.set(i,m);
+  });
+}
+function facPopup(i){
+  const f=FAC[i],T=FAC_TYPES[f[0]],tr=window.__FACTOUR&&f[0]==='res'?window.__FACTOUR[f[1]]:null;
+  const gm='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(f[1]+' '+f[2]+','+f[3]);
+  let h='<div class="spotpop facpop"><b>'+esc(f[1])+'</b><small><i class="fdot f-'+(f[0].indexOf('lib')===0?'lib':f[0])+'"></i>'+T.name+'　'+esc(f[4])+'駅の近く</small>';
+  if(tr){
+    h+='<div class="tour"><h4>見学ツアー</h4><p class="tst">'+esc(tr.s)+'</p>'+tr.t.map(x=>'<p>'+esc(x)+'</p>').join('')+
+      (tr.q?'<p class="qs">'+esc(tr.q)+'</p>':'')+
+      '<p class="qs">'+esc(tr.c)+' に、ウェブで調べた内容です。実施の有無・日程は変わるので、公式の案内で確認してください。</p>'+
+      (tr.u?'<p><a href="'+tr.u+'" target="_blank" rel="noopener">公式・参考のページを開く</a></p>':'')+'</div>';
+  }
+  h+='<p style="margin:8px 0 0">'+(f[5]?'<a href="'+esc(f[5])+'" target="_blank" rel="noopener">公式サイト</a>　':'')+'<a href="'+gm+'" target="_blank" rel="noopener">Googleマップで開く</a></p></div>';
+  L.popup({className:'spot-popup',offset:[0,-10],maxWidth:300}).setLatLng([f[2],f[3]]).setContent(h).openOn(map);
+}
+map.on('moveend zoomend',()=>{try{refreshFac();}catch(e){}});
+// 表示する種類を選ぶ小さなパネル
+const facBar=document.createElement('div');facBar.id='facbar';facBar.hidden=true;document.body.appendChild(facBar);
+function paintFacBar(){
+  const on=new Set(S.ui.fac.on);
+  facBar.innerHTML='<div class="fb-h"><b>施設のピン</b><button class="back" id="fac-close">閉じる</button></div><div class="chips">'+
+    FAC_GROUPS.map(([g,n])=>'<button class="chip" data-fg="'+g+'" aria-pressed="'+on.has(g)+'"><span class="fdot f-'+g+'"></span>'+n+'</button>').join('')+'</div>'+
+    '<p class="qs">拡大すると、順に表示されます(大学・研究機関 → 図書館・美術館 → カラオケ)。研究機関のピンを押すと、見学ツアーの案内が出ます。</p>';
+  facBar.querySelectorAll('[data-fg]').forEach(b=>b.onclick=()=>{const s=new Set(S.ui.fac.on),g=b.dataset.fg;s.has(g)?s.delete(g):s.add(g);S.ui.fac.on=[...s];save();paintFacBar();refreshFac();});
+  facBar.querySelector('#fac-close').onclick=()=>{facBar.hidden=true;};
+}
+document.getElementById('btn-fac').onclick=e=>{e.preventDefault();facBar.hidden=!facBar.hidden;if(!facBar.hidden){paintFacBar();loadFac();}};
+setTimeout(()=>{try{refreshFac();}catch(e){}},1200);
 // ---------- スポットのハイライト（v14）：観光名所・公園庭園・博物館美術館・遊ぶ・観る聴く・湯サウナ ----------
 // データは spots.js（tools/extract_spots.py で OSM から作る。沿線46駅から2km以内）。オンにしたときだけ読み込む
 const SPOT_CATS=[['tour','観光名所'],['park','公園・庭園'],['museum','博物館・美術館'],['play','遊ぶ'],['stage','観る・聴く'],['bath','湯・サウナ']];
@@ -2983,6 +3059,7 @@ function goBack(){
   try{
     if(typeof vw!=='undefined'&&vw){closeViewer();return true;}
     if(map._popup){map.closePopup();return true;}
+    if(typeof facBar!=='undefined'&&!facBar.hidden){facBar.hidden=true;return true;}
     if(settingsOpen){settingsOpen=false;render();return true;}
     if(town&&pinView&&pinView.mode!=='list'){if(pinView.mode==='pick'||pinView.mode==='form')cancelDraft();pinView={mode:'list'};render();body.scrollTop=0;return true;}
     if(town){exitTown();return true;}
