@@ -10,6 +10,7 @@ body.flying .leaflet-marker-pane,body.flying .leaflet-tooltip-pane,body.flying .
 #boot .jp{display:none}@keyframes jphide{99%{opacity:0}to{opacity:0;visibility:hidden}}   /* 後半は、日本地図を描かない(描画を軽くし、ちらつきを防ぐ) */
 @keyframes bootout{to{opacity:0;visibility:hidden;transform:scale(var(--fz,2.2))}}
 #boot .bsv{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
+#boot.land .cam{transform:translate(var(--tAx,0px),var(--tAy,0px)) rotate(0deg) scale(var(--sA,1))}
 #boot .bcv{position:absolute;left:0;top:0;width:100%;height:100%}
 body.bootplay #map{visibility:hidden}
 #boot.cv .bsv{display:none}
@@ -220,6 +221,18 @@ window.__V=(function(){
   st.textContent=kf1+'}'+kf2+'}#boot svg.bsv g.cam{animation:none}'+
     (snapOk?'#boot .bwrap canvas.snap{position:absolute;visibility:hidden;animation:bshow .01s linear '+TP+'s forwards}#boot .bwrap .bsv{animation:bhide .01s linear '+TP+'s forwards}':'');
   document.head.appendChild(st);
+  // PC(横長の画面)では、東京を北が上の横向きにして、画面いっぱいに大きく見せる
+  (function(){
+    if(!(vw>=860&&vw>vh*1.1))return;
+    var x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+    [].forEach.call(sv.querySelectorAll('path.bw'),function(p){
+      var n=(p.getAttribute('d')||'').match(/-?\d+\.?\d*/g)||[];
+      for(var k=0;k+1<n.length;k+=2){var X=+n[k],Y=+n[k+1];if(X<x0)x0=X;if(X>x1)x1=X;if(Y<y0)y0=Y;if(Y>y1)y1=Y;}});
+    if(!(x1>x0&&y1>y0))return;
+    var s2=Math.min(.9*vw/(x1-x0),.74*vh/(y1-y0)),bc={x:(x0+x1)/2,y:(y0+y1)/2},C={x:vw/2,y:vh*.45};
+    b.style.setProperty('--tAx',(C.x-O.x-s2*(bc.x-O.x))+'px');b.style.setProperty('--tAy',(C.y-O.y-s2*(bc.y-O.y))+'px');b.style.setProperty('--sA',s2);
+    b.classList.add('land');
+  })();
 })();
 </script>
 <script>
