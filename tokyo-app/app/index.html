@@ -633,6 +633,11 @@ details.more summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--i
 body.panelfade #panel{animation:panelin 1.6s cubic-bezier(.2,.7,.2,1) both}
 body.panelfade #top,body.panelfade #walkbar{animation:topin 1.6s cubic-bezier(.2,.7,.2,1) both}
 .fdesc{margin:6px 0 2px;font-size:13px;line-height:1.65}.fsrc{margin:0 0 6px}
+#zoomind{position:fixed;z-index:640;left:12px;top:calc(env(safe-area-inset-top,0px) + 160px);display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:999px;background:var(--panel);color:var(--ink);box-shadow:var(--shadow);font:700 12px var(--f-body);pointer-events:none;white-space:nowrap}
+#zoomind .zi-z{font-family:var(--f-num);font-size:14px}
+#zoomind .zi-bar i{display:block;height:6px;border:2px solid var(--ink);border-top:0;box-sizing:border-box}
+@media (min-width:860px){#zoomind{left:auto;right:64px;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 30px)}}
+body.flying #zoomind{opacity:.9}
 .sb-h2{margin:10px 0 6px;font-weight:700;font-size:13px;color:var(--ink2)}
 .fpin{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;font:700 14px var(--f-disp);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);transform:scale(var(--zs,1));box-sizing:border-box}
 .fpin.big{width:34px;height:34px;font-size:17px;border-radius:50% 50% 50% 4px;border-width:2.5px}
@@ -1383,6 +1388,21 @@ function zoomLabels(){
   c.toggle('hide-st',false);c.toggle('far',z<12);c.toggle('mid',z<13);c.toggle('muni-off',z<12.5||hideMuni);
 }
 map.on('zoomend',()=>{zoomLabels();styleMarkers();});
+// ---------- 現在の拡大倍率の表示(常に表示): 拡大の段階 + 縮尺バー ----------
+const zind=document.createElement('div');zind.id='zoomind';zind.setAttribute('aria-live','off');
+zind.innerHTML='<span class="zi-z"></span><span class="zi-bar"><i></i></span><span class="zi-d"></span>';
+document.body.appendChild(zind);L.DomEvent.disableClickPropagation(zind);
+function updateZoomInd(){
+  try{
+    const z=map.getZoom(),la=map.getCenter().lat,mpp=40075016.686*Math.cos(la*Math.PI/180)/(256*Math.pow(2,z)),
+      NICE=[10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000];
+    let L2=NICE[0];for(const v of NICE){if(v/mpp<=110)L2=v;}
+    zind.querySelector('.zi-z').textContent='拡大 '+(Math.round(z*10)/10).toFixed(1);
+    zind.querySelector('.zi-bar i').style.width=Math.max(18,Math.round(L2/mpp))+'px';
+    zind.querySelector('.zi-d').textContent=L2>=1000?(L2/1000)+' km':L2+' m';
+  }catch(e){}
+}
+map.on('zoom move',updateZoomInd);updateZoomInd();
 // 縮小したとき(拡大13未満)は、同梱の簡略図形だけだと粗いので、細かい地図(OpenStreetMap)を下敷きにする。通信できないときは、簡略図形のまま
 map.createPane('lowtile');map.getPane('lowtile').style.zIndex=305;
 var lowOsm=null;
