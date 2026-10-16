@@ -1411,7 +1411,7 @@ function lowDark(){const a=document.documentElement.getAttribute('data-theme');r
 function lowTileUrl(dk){return 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_'+(dk?'Dark':'Light')+'_Gray_Base/MapServer/tile/{z}/{y}/{x}';}
 function updateLowTiles(){
   try{
-    const z=map.getZoom(),dk=lowDark(),want=(z>=12&&!(z>=14&&window.__detailReady))&&navigator.onLine!==false&&!(typeof osmOn!=='undefined'&&osmOn);
+    const z=map.getZoom(),dk=lowDark(),want=(z>=12&&!(z>=15&&window.__detailReady))&&navigator.onLine!==false&&!(typeof osmOn!=='undefined'&&osmOn);
     if(lowOsm&&lowOsm._dk!==dk){if(map.hasLayer(lowOsm))map.removeLayer(lowOsm);lowOsm=null;}
     if(want){if(!lowOsm){lowOsm=L.tileLayer(lowTileUrl(dk),{pane:'lowtile',maxZoom:19,maxNativeZoom:16,keepBuffer:2,updateWhenZooming:false,attribution:'Tiles © Esri'});lowOsm._dk=dk;}
       if(!map.hasLayer(lowOsm))lowOsm.addTo(map);}
@@ -1770,7 +1770,7 @@ async function compress(file){
 // 詳細地図（建物・道路・公園・川）。tiles/ の区画ファイルを、表示している範囲だけ読み込む
 // v13: 図形を地図に直接載せると動かすたびに全部を描き直して固まるため、256pxの画像タイル（GridLayer）に一度だけ描いて使い回す。
 //      区画の図形は読み込み時に一度だけ座標を展開し、小さな格子で索引を付けて、タイルに必要な分だけ描く。描画は少しずつ分けて進める
-const TILESET=new Set(TILE_KEYS),TDLAT=.025,TDLNG=.03125,DETAIL_Z=14,SPOT_Z=15,TGRID=8;
+const TILESET=new Set(TILE_KEYS),TDLAT=.025,TDLNG=.03125,DETAIL_Z=15,SPOT_Z=15,TGRID=8;
 const tkey=(lat,lng)=>Math.floor(lat/TDLAT)+'_'+Math.floor(lng/TDLNG);
 const tileData={},tileState={},tileWait={};
 const hasDetail=n=>TILESET.has(tkey(...BY[n].ll));
@@ -1895,7 +1895,7 @@ function makeJob(cv,co,size,dpr,keys,nw,se,done){
 }
 map.createPane('detail');map.getPane('detail').style.zIndex=350;
 const detailLayer=new DetailLayer({pane:'detail',minZoom:DETAIL_Z,maxNativeZoom:17,keepBuffer:1,updateWhenZooming:false,updateWhenIdle:true});
-detailLayer.on('load',()=>{if(!window.__detailReady&&window.__bootOver&&map.getZoom()>=14){window.__detailReady=true;try{updateLowTiles();}catch(e){}}});
+detailLayer.on('load',()=>{if(!window.__detailReady&&window.__bootOver&&map.getZoom()>=15){window.__detailReady=true;try{updateLowTiles();}catch(e){}}});
 if(TILESET.size){detailLayer.addTo(map);map.attributionControl.addAttribution('詳細地図：© OpenStreetMap contributors');}
 function updateDetail(){detailLayer.redraw();}
 
