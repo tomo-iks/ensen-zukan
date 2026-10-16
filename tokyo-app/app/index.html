@@ -626,12 +626,13 @@ details.more summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--i
 .gi{width:56px;height:40px;flex:none;display:grid;place-items:center;text-align:center;line-height:1.2}
 .gi svg{display:block;margin:auto}.gi b{white-space:nowrap}
 .grow{align-items:center}.grow>span:last-child{flex:1;min-width:0}
-:root[data-theme="dark"] .leaflet-lowtile-pane img{filter:invert(.92) hue-rotate(180deg) brightness(.82) contrast(.9) saturate(.7)}
-.leaflet-lowtile-pane{opacity:.8;filter:saturate(.55)}
+.leaflet-lowtile-pane{opacity:1}
+.mid .leaflet-tooltip.muni-label{opacity:.5;font-size:11px;letter-spacing:.06em}   /* 広角では、区名を小さく薄く */
 @keyframes panelin{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
 @keyframes topin{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
 body.panelfade #panel{animation:panelin 1.6s cubic-bezier(.2,.7,.2,1) both}
 body.panelfade #top,body.panelfade #walkbar{animation:topin 1.6s cubic-bezier(.2,.7,.2,1) both}
+.fdesc{margin:6px 0 2px;font-size:13px;line-height:1.65}.fsrc{margin:0 0 6px}
 .sb-h2{margin:10px 0 6px;font-weight:700;font-size:13px;color:var(--ink2)}
 .fpin{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;font:700 14px var(--f-disp);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);transform:scale(var(--zs,1));box-sizing:border-box}
 .fpin.big{width:34px;height:34px;font-size:17px;border-radius:50% 50% 50% 4px;border-width:2.5px}
@@ -1385,16 +1386,22 @@ map.on('zoomend',()=>{zoomLabels();styleMarkers();});
 // 縮小したとき(拡大13未満)は、同梱の簡略図形だけだと粗いので、細かい地図(OpenStreetMap)を下敷きにする。通信できないときは、簡略図形のまま
 map.createPane('lowtile');map.getPane('lowtile').style.zIndex=305;
 var lowOsm=null;
+// 広角用の下敷き: 文字・道路番号のない、落ち着いた灰色の地図(Esri Canvas Light/Dark Gray Base)。ライト/ダークに追従する
+function lowDark(){const a=document.documentElement.getAttribute('data-theme');return a?a==='dark':matchMedia('(prefers-color-scheme: dark)').matches;}
+function lowTileUrl(dk){return 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_'+(dk?'Dark':'Light')+'_Gray_Base/MapServer/tile/{z}/{y}/{x}';}
 function updateLowTiles(){
   try{
-    const z=map.getZoom(),want=(z<13||!(z>=14&&window.__detailReady))&&navigator.onLine!==false&&!(typeof osmOn!=='undefined'&&osmOn);
-    if(want){if(!lowOsm)lowOsm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{pane:'lowtile',maxZoom:19,maxNativeZoom:18,keepBuffer:2,updateWhenZooming:false,attribution:'© OpenStreetMap contributors'});
+    const z=map.getZoom(),dk=lowDark(),want=(z>=12&&!(z>=14&&window.__detailReady))&&navigator.onLine!==false&&!(typeof osmOn!=='undefined'&&osmOn);
+    if(lowOsm&&lowOsm._dk!==dk){if(map.hasLayer(lowOsm))map.removeLayer(lowOsm);lowOsm=null;}
+    if(want){if(!lowOsm){lowOsm=L.tileLayer(lowTileUrl(dk),{pane:'lowtile',maxZoom:19,maxNativeZoom:16,keepBuffer:2,updateWhenZooming:false,attribution:'Tiles © Esri'});lowOsm._dk=dk;}
       if(!map.hasLayer(lowOsm))lowOsm.addTo(map);}
     else if(lowOsm&&map.hasLayer(lowOsm))map.removeLayer(lowOsm);
   }catch(e){}
 }
+new MutationObserver(()=>updateLowTiles()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 map.on('zoomend',updateLowTiles);
 updateLowTiles();   // 演出のあいだに、下で読み込んでおく(演出が終わった瞬間から、細かい地図が見える)
+afterBoot(()=>{loadDesc();},6000);   // 説明文のデータは、起動の演出のあとで読み込む
 afterBoot(()=>{window.__bootOver=true;updateLowTiles();try{updateDetail();}catch(e){}},3600);
 document.head.insertAdjacentHTML('beforeend','<style>.hide-st .st-label.sel{display:block!important}</style>');
 
@@ -2285,9 +2292,24 @@ function wireFood(){
   wireSort('food');
   body.querySelectorAll('[data-shop]').forEach(b=>b.onclick=()=>openShop(b.dataset.shop));
 }
+// 各ピンの説明文(descs.js: Wikipediaなどの公開情報から作成)。必要になったときに読み込む
+var descState=0,descWait=[];
+function loadDesc(cb){
+  if(window.__DESC){cb&&cb();return;}
+  if(cb)descWait.push(cb);
+  if(descState)return;descState=1;
+  const s=document.createElement('script');s.src='descs.js';s.async=true;
+  s.onload=()=>{descState=2;descWait.splice(0).forEach(f=>{try{f();}catch(e){}});};s.onerror=()=>{descState=3;};
+  document.head.appendChild(s);
+}
+function descHTML(kind,key){
+  const d=window.__DESC&&window.__DESC[kind]&&window.__DESC[kind][key];if(!d||!d[0])return '';
+  const wp=/^Wikipedia/.test(d[1]||'');
+  return '<p class="fdesc">'+esc(d[0])+'</p><p class="qs fsrc">出典: '+(d[2]?'<a href="'+esc(d[2])+'" target="_blank" rel="noopener">'+esc(d[1])+'</a>':esc(d[1]||''))+(wp?'（CC BY-SA）':'')+'</p>';
+}
 function telHTML(tel,name,hint){
   if(tel){const d=String(tel).replace(/[^\d+]/g,'');
-    return '<p class="telrow"><a class="telbtn" href="tel:'+d+'" aria-label="'+esc(name)+'に電話をかける">📞 '+esc(tel)+'<small>タップで電話をかける</small></a></p>';}
+    return '<p class="telrow"><a class="telbtn" href="tel:'+d+'" aria-label="'+esc(name)+'に電話をかける">📞 '+esc(tel)+'<small>タップで電話をかける</small></a></p><p class="qs" style="margin:-4px 0 8px">公開されている情報から集めた番号です。変更・休業の場合があります。</p>';}
   const g='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+' '+(hint||''));
   return '<p class="qs telrow">電話番号は、公開データに見つかりませんでした。<a href="'+g+'" target="_blank" rel="noopener">Googleマップで電話番号を見る</a></p>';
 }
@@ -2996,6 +3018,8 @@ function facPopup(i){
   const f=FAC[i],T=FAC_TYPES[f[0]],tr=window.__FACTOUR&&f[0]==='res'?window.__FACTOUR[f[1]]:null;
   const gm='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(f[1]+' '+f[2]+','+f[3]);
   let h='<div class="spotpop facpop"><b>'+esc(f[1])+'</b><small><i class="fdot f-'+(f[0].indexOf('lib')===0?'lib':f[0])+'"></i>'+T.name+'　'+esc(f[4])+'駅の近く</small>';
+  h+=descHTML('f',f[1]+'|'+f[2]+'|'+f[3]);
+  if(!window.__DESC)loadDesc(()=>{try{if(map._popup&&map._popup.isOpen())facPopup(i);}catch(e){}});
   h+=telHTML(f[6],f[1],f[4]+'駅');
   if(tr){
     h+='<div class="tour"><h4>見学ツアー</h4><p class="tst">'+esc(tr.s)+'</p>'+tr.t.map(x=>'<p>'+esc(x)+'</p>').join('')+
@@ -3106,7 +3130,7 @@ map.on('click',e=>{
   if(!best)return;
   const base=s=>s.replace(/[\s（(].*$/,'').replace(/\s/g,''),pl=PLAYS.find(x=>base(x.n)&&(base(x.n)===base(best.n)||x.n.includes(best.n)||best.n.includes(base(x.n))&&base(x.n).length>=3));
   const stel=window.__SPOTTEL&&window.__SPOTTEL[Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5)];
-  const html=`<div class="spotpop"><b>${esc(best.n)}</b><small><i style="background:var(--sp-${best.c})"></i>${SPOTNAME[best.c]}</small>${telHTML(stel||(pl&&pl.tel),best.n,'')}${pl?`<button class="ghost" data-sp-play="${pl.id}">図鑑の「遊び場」で見る</button>`:''}</div>`;
+  const html=`<div class="spotpop"><b>${esc(best.n)}</b><small><i style="background:var(--sp-${best.c})"></i>${SPOTNAME[best.c]}</small>${descHTML('s',Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5))}${telHTML(stel||(pl&&pl.tel),best.n,'')}${pl?`<button class="ghost" data-sp-play="${pl.id}">図鑑の「遊び場」で見る</button>`:''}</div>`;
   const pop=L.popup({className:'spot-popup',offset:[0,-4],autoPanPadding:[30,30]}).setLatLng(best.ring&&z>=SPOT_Z?e.latlng:[best.lat,best.lng]).setContent(html).openOn(map);
   setTimeout(()=>{const b=pop.getElement()&&pop.getElement().querySelector('[data-sp-play]');if(b)b.onclick=()=>{map.closePopup();openPlay(b.dataset.spPlay);};},0);
 });
@@ -3456,7 +3480,7 @@ window.__landing=function(){
     const w=Z<=z0?0:(1-Math.pow(2,-(Z-z0)))/den,cp=L.point(W0.x+(W1.x-W0.x)*w,W0.y+(W1.y-W0.y)*w),k=Math.pow(2,Z-z1),c={x:cp.x*k,y:cp.y*k},
           hw=innerWidth/2*Math.pow(2,Z-Math.max(z0,Math.min(z1,Z)))+256,hh=innerHeight/2*Math.pow(2,Z-Math.max(z0,Math.min(z1,Z)))+256,n=Math.pow(2,Z);
     for(let x=Math.floor((c.x-hw)/256);x<=Math.floor((c.x+hw)/256);x++)for(let y=Math.floor((c.y-hh)/256);y<=Math.floor((c.y+hh)/256);y++){
-      if(y<0||y>=n)continue;const im=new Image();im.src='https://tile.openstreetmap.org/'+Z+'/'+(((x%n)+n)%n)+'/'+y+'.png';}
+      if(y<0||y>=n)continue;const im=new Image();im.src=lowTileUrl(lowDark()).replace('{z}',Z).replace('{x}',((x%n)+n)%n).replace('{y}',y);}
   }
 }catch(e){}})();
 afterBoot(()=>{const s=document.createElement('script');s.src='places.js';s.async=true;document.head.appendChild(s);},3000);   // 店・遊び場のデータ(約1.2MB)は、最初の表示のあとに読む
