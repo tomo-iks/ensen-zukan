@@ -1411,7 +1411,7 @@ function lowDark(){const a=document.documentElement.getAttribute('data-theme');r
 function lowTileUrl(dk){return 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_'+(dk?'Dark':'Light')+'_Gray_Base/MapServer/tile/{z}/{y}/{x}';}
 function updateLowTiles(){
   try{
-    const z=map.getZoom(),dk=lowDark(),want=(z>=12&&!(z>=15&&window.__detailReady))&&navigator.onLine!==false&&!(typeof osmOn!=='undefined'&&osmOn);
+    const z=map.getZoom(),dk=lowDark(),want=(z>=12&&!(z>=13&&window.__detailReady))&&navigator.onLine!==false&&!(typeof osmOn!=='undefined'&&osmOn);
     if(lowOsm&&lowOsm._dk!==dk){if(map.hasLayer(lowOsm))map.removeLayer(lowOsm);lowOsm=null;}
     if(want){if(!lowOsm){lowOsm=L.tileLayer(lowTileUrl(dk),{pane:'lowtile',maxZoom:19,maxNativeZoom:16,keepBuffer:2,updateWhenZooming:false,attribution:'Tiles © Esri'});lowOsm._dk=dk;}
       if(!map.hasLayer(lowOsm))lowOsm.addTo(map);}
@@ -1770,7 +1770,7 @@ async function compress(file){
 // 詳細地図（建物・道路・公園・川）。tiles/ の区画ファイルを、表示している範囲だけ読み込む
 // v13: 図形を地図に直接載せると動かすたびに全部を描き直して固まるため、256pxの画像タイル（GridLayer）に一度だけ描いて使い回す。
 //      区画の図形は読み込み時に一度だけ座標を展開し、小さな格子で索引を付けて、タイルに必要な分だけ描く。描画は少しずつ分けて進める
-const TILESET=new Set(TILE_KEYS),TDLAT=.025,TDLNG=.03125,DETAIL_Z=15,SPOT_Z=15,TGRID=8;
+const TILESET=new Set(TILE_KEYS),TDLAT=.025,TDLNG=.03125,DETAIL_Z=13,SPOT_Z=15,TGRID=8;
 const tkey=(lat,lng)=>Math.floor(lat/TDLAT)+'_'+Math.floor(lng/TDLNG);
 const tileData={},tileState={},tileWait={};
 const hasDetail=n=>TILESET.has(tkey(...BY[n].ll));
@@ -1842,7 +1842,7 @@ function dStyles0(z){
   return [['g','fill',{f:css('--park')}],['w','fill',{f:css('--water')}],['wl','line',{c:css('--water'),lw:4}],
     ['r2','line',{c:css('--bldgline'),lw:6}],['r1','line',{c:css('--bldgline'),lw:9}],['r3','line',{c:css('--road'),lw:2.5}],
     ['r2','line',{c:css('--road'),lw:4}],['r1','line',{c:css('--road1'),lw:7}],
-    ['b','fill',{f:css('--bldg'),c:z>=14?(b?css('--bldgline'):css('--land')):null,lw:b?.8:1.2}],['rl','line',{c:css('--ink2'),lw:2,dash:[7,5]}]].filter(s=>(s[0]!=='rl'||z>=16)&&!(s[0]==='b'&&z>=15)&&!(s[0]==='r3'&&z>=17));   // 拡大15以上は建物を描かず道路中心に、17以上は細い道も描かず主要な道(幹線・主要道路)だけにする
+    ['b','fill',{f:css('--bldg'),c:z>=14?(b?css('--bldgline'):css('--land')):null,lw:b?.8:1.2}],['rl','line',{c:css('--ink2'),lw:2,dash:[7,5]}]].filter(s=>(s[0]!=='rl'||z>=16)&&!(s[0]==='b'&&z<=15)&&!(s[0]==='r3'&&z<=13));   // 拡大15以下は建物を描かず道路中心に、13以下は細い道も描かず主要な道(幹線・主要道路)だけにする
 }
 // 描画待ちのタイルを、1フレーム約8msずつ処理する（固まらないように）
 const drawQ=[];let drawing=false;
@@ -1895,7 +1895,7 @@ function makeJob(cv,co,size,dpr,keys,nw,se,done){
 }
 map.createPane('detail');map.getPane('detail').style.zIndex=350;
 const detailLayer=new DetailLayer({pane:'detail',minZoom:DETAIL_Z,maxNativeZoom:17,keepBuffer:1,updateWhenZooming:false,updateWhenIdle:true});
-detailLayer.on('load',()=>{if(!window.__detailReady&&window.__bootOver&&map.getZoom()>=15){window.__detailReady=true;try{updateLowTiles();}catch(e){}}});
+detailLayer.on('load',()=>{if(!window.__detailReady&&window.__bootOver&&map.getZoom()>=13){window.__detailReady=true;try{updateLowTiles();}catch(e){}}});
 if(TILESET.size){detailLayer.addTo(map);map.attributionControl.addAttribution('詳細地図：© OpenStreetMap contributors');}
 function updateDetail(){detailLayer.redraw();}
 
