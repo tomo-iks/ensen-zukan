@@ -601,7 +601,7 @@ button.chip[aria-pressed="true"],.ffilter .chip[aria-pressed="true"]{background:
 #btn-fac{display:none!important}
 .askbk{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
 .askbx{background:var(--panel);color:var(--ink);border-radius:var(--r-l);padding:18px;max-width:420px;width:100%;box-shadow:var(--shadow);max-height:88vh;overflow:auto}
-.askbx p{margin:0 0 14px;font-size:16px;line-height:1.6}.askbt{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+.askbx p{margin:0 0 14px;font-size:16px;line-height:1.6;white-space:pre-line}.askbt{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
 .askbt button,.locbx button{padding:10px 18px;border-radius:var(--r);font:inherit;font-weight:700;border:1px solid var(--rule);background:var(--chip);color:var(--ink)}
 .askbt .primary,.locbx .primary{background:var(--accent);color:#fff;border-color:transparent}
 .guidebx h2{margin:0 0 4px;font-size:20px}.grow{display:flex;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--rule);font-size:14px;line-height:1.5}
@@ -2327,12 +2327,61 @@ function descHTML(kind,key){
   const wp=/^Wikipedia/.test(d[1]||'');
   return '<p class="fdesc">'+esc(d[0])+'</p><p class="qs fsrc">出典: '+(d[2]?'<a href="'+esc(d[2])+'" target="_blank" rel="noopener">'+esc(d[1])+'</a>':esc(d[1]||''))+(wp?'（CC BY-SA）':'')+'</p>';
 }
-function telHTML(tel,name,hint){
-  if(tel){const d=String(tel).replace(/[^\d+]/g,'');
-    return '<p class="telrow"><a class="telbtn" href="tel:'+d+'" aria-label="'+esc(name)+'に電話をかける">📞 '+esc(tel)+'<small>タップで電話をかける</small></a></p><p class="qs" style="margin:-4px 0 8px">公開されている情報から集めた番号です。変更・休業の場合があります。</p>';}
-  const g='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+' '+(hint||''));
-  return '<p class="qs telrow">電話番号は、公開データに見つかりませんでした。<a href="'+g+'" target="_blank" rel="noopener">Googleマップで電話番号を見る</a></p>';
+// ---------- 電話番号: 公開データにない番号は、Googleマップで見て、コピーした番号を登録できる(端末内にだけ保存) ----------
+// Googleマップの中身を、アプリが自動で読み取ることはできない(別のサイトで、利用条件もある)。そのため、
+// 「Googleマップを開く → 番号をコピー → アプリに戻る → コピーした番号を登録」の流れを、できるだけ楽にする。
+function fmtTel(v){
+  const m=/(?:\+81[\s\-ー−]?|0)(\d{1,4})[\s\-‐‑–−ー()（）]*(\d{1,4})[\s\-‐‑–−ー()（）]*(\d{3,4})/.exec(String(v).normalize('NFKC'));
+  if(!m)return null;
+  let d=(/^\+81/.test(String(v).normalize('NFKC').trim())?'0':'')+m[0].replace(/[^\d]/g,'');
+  if(d.charAt(0)!=='0')d='0'+d;
+  if(!/^0\d{9,10}$/.test(d))return null;
+  if(/^0(3|6)/.test(d))return d.slice(0,2)+'-'+d.slice(2,6)+'-'+d.slice(6);
+  if(/^0(120|800|570)/.test(d))return d.slice(0,4)+'-'+d.slice(4,7)+'-'+d.slice(7);
+  if(/^0[789]0/.test(d))return d.slice(0,3)+'-'+d.slice(3,7)+'-'+d.slice(7);
+  return d.length===10?d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6):d.slice(0,3)+'-'+d.slice(3,7)+'-'+d.slice(7);
 }
+S.ui.tels=S.ui.tels||{};
+function telInner(key,tel,name,hint){
+  const mine=S.ui.tels[key],use=mine||tel;
+  if(use){const d=String(use).replace(/[^\d+]/g,'');
+    return '<p class="telrow"><a class="telbtn" href="tel:'+d+'" aria-label="'+esc(name)+'に電話をかける">📞 '+esc(use)+'<small>タップで電話をかける</small></a></p><p class="qs" style="margin:-4px 0 8px">'+(mine?'あなたが登録した番号です。':'公開されている情報から集めた番号です。変更・休業の場合があります。')+' <a href="#" data-tel-reg="1">'+(mine?'番号を変える':'番号が違う？登録し直す')+'</a>'+(mine?'　<a href="#" data-tel-del="1">削除</a>':'')+'</p>';}
+  const g='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+' '+(hint||''));
+  return '<p class="qs telrow">電話番号は、公開データに見つかりませんでした。<a href="'+g+'" target="_blank" rel="noopener" data-gmap="1">Googleマップで電話番号を見る</a></p>'+
+    '<p class="qs" style="margin:-2px 0 8px">Googleマップで番号をコピーして戻ると、ここに登録できます。 <button class="chip" data-tel-reg="1" type="button">📋 コピーした番号を登録</button></p>';
+}
+function telHTML(tel,name,hint,key){
+  key=key||('n:'+name);
+  return '<div class="telwrap" data-key="'+esc(key)+'" data-name="'+esc(name)+'" data-hint="'+esc(hint||'')+'" data-tel="'+esc(tel||'')+'">'+telInner(key,tel,name,hint)+'</div>';
+}
+function telRefresh(w){w.innerHTML=telInner(w.dataset.key,w.dataset.tel,w.dataset.name,w.dataset.hint);}
+async function telRegister(w){
+  let txt='';
+  try{txt=await navigator.clipboard.readText();}catch(e){txt='';}
+  let f=fmtTel(txt);
+  if(!f){
+    const v=window.prompt('電話番号を入力してください（Googleマップでコピーした番号を貼り付けてもOK）','');
+    if(v==null)return;f=fmtTel(v);
+    if(!f){toast('電話番号として読み取れませんでした。例: 03-1234-5678');return;}
+    S.ui.tels[w.dataset.key]=f;save();telRefresh(w);toast('番号を登録しました');return;
+  }
+  askOk('「'+w.dataset.name+'」の電話番号として、次の番号を登録しますか？\n'+f,'登録する',()=>{S.ui.tels[w.dataset.key]=f;save();telRefresh(w);toast('番号を登録しました（この端末の中だけに保存されます）');});
+}
+document.addEventListener('click',e=>{
+  const a=e.target.closest&&e.target.closest('[data-gmap],[data-tel-reg],[data-tel-del]');if(!a)return;
+  const w=a.closest('.telwrap');if(!w)return;
+  if(a.hasAttribute('data-gmap')){window.__gmapOpened={w:w,t:Date.now()};return;}   // リンクは、そのまま開く
+  e.preventDefault();
+  if(a.hasAttribute('data-tel-del')){delete S.ui.tels[w.dataset.key];save();telRefresh(w);return;}
+  telRegister(w);
+});
+// Googleマップから戻ってきたら、コピーした番号を登録するか尋ねる
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='visible')return;
+  const g=window.__gmapOpened;if(!g||Date.now()-g.t>20*60*1000||!document.body.contains(g.w))return;
+  window.__gmapOpened=null;
+  askOk('Googleマップで「'+g.w.dataset.name+'」の電話番号をコピーしましたか？\nコピーした番号を、このお店に登録できます。','番号を登録する',()=>telRegister(g.w));
+});
 function openShop(id){
   const s=SHOPS.find(x=>x.id===id);if(!s)return;
   setMapOnly(false);panel.classList.remove('collapsed');
@@ -2349,7 +2398,7 @@ function renderShopDetail(){
   <div class="meta" style="margin-top:8px"><span class="chip">${BIGNAME[s.big]}</span><span class="chip">${s.town}</span></div>
   <h2 class="pin-title">${s.n}</h2>
   <p class="qs" style="margin:-4px 0 10px">${s.g}　｜　${s.st}</p>
-  ${telHTML(s.tel,s.n,s.st.replace(/\s.*$/,''))}
+  ${telHTML(s.tel,s.n,s.st.replace(/\s.*$/,''),'shop:'+s.id)}
   ${spotPhotosHTML(s.id)}
   <div class="sec"><h3>リンク</h3><ul class="links"><li><a href="${s.u}" target="_blank" rel="noopener">食べログの店舗ページ（営業時間・予算・メニュー・口コミ）</a></li><li><a href="${gmap}" target="_blank" rel="noopener">Googleマップで場所を確認</a></li></ul></div>
   ${markBtns(s.id)}
@@ -2437,7 +2486,7 @@ function renderPlayDetail(){
   <div class="meta" style="margin-top:8px"><span class="chip">${PBIGNAME[p.big]}</span><span class="chip">${p.town}</span>${p.night?'<span class="chip">夜も遊べる</span>':''}${p.rain?'<span class="chip">雨の日OK</span>':''}</div>
   <h2 class="pin-title">${esc(p.n)}</h2>
   <p class="qs" style="margin:-4px 0 10px">${esc(p.g)}　｜　${esc(p.st)}</p>
-  ${telHTML(p.tel,p.n,p.addr||p.town)}
+  ${telHTML(p.tel,p.n,p.addr||p.town,'play:'+p.id)}
   ${spotPhotosHTML(p.id)}
   <div class="ptable" style="margin-top:16px"><div><b>料金</b><span style="font-size:14px;font-family:var(--f-body)">${esc(p.price||'未確認')}</span><small>${p.band?PBANDNAME[p.band]+(p.price?'':'（目安）'):''}</small></div><div><b>営業時間</b><span style="font-size:14px;font-family:var(--f-body)">${esc(p.hours||'未確認')}</span></div></div>
   ${p.desc?`<div class="sec"><h3>どんな場所か</h3><p class="sdesc">${esc(p.desc)}</p><p class="qs" style="margin:4px 0 0">${p.auto?'Wikipedia・OpenStreetMapの情報をもとにClaudeがまとめた紹介です。営業時間・料金は確認していません':'公式情報や口コミサイトをもとにClaudeがまとめた紹介です'}（${p.ck||PLAYS_CHECKED}確認）。</p></div>`:`<p class="qs" style="margin:12px 0 0">OpenStreetMapの登録から自動で集めた場所です（${p.ck||PLAYS_CHECKED}時点）。紹介文はまだありません。</p>`}
@@ -3040,7 +3089,7 @@ function facPopup(i){
   let h='<div class="spotpop facpop"><b>'+esc(f[1])+'</b><small><i class="fdot f-'+(f[0].indexOf('lib')===0?'lib':f[0])+'"></i>'+T.name+'　'+esc(f[4])+'駅の近く</small>';
   h+=descHTML('f',f[1]+'|'+f[2]+'|'+f[3]);
   if(!window.__DESC)loadDesc(()=>{try{if(map._popup&&map._popup.isOpen())facPopup(i);}catch(e){}});
-  h+=telHTML(f[6],f[1],f[4]+'駅');
+  h+=telHTML(f[6],f[1],f[4]+'駅','fac:'+f[1]+'|'+f[2]+'|'+f[3]);
   if(tr){
     h+='<div class="tour"><h4>見学ツアー</h4><p class="tst">'+esc(tr.s)+'</p>'+tr.t.map(x=>'<p>'+esc(x)+'</p>').join('')+
       (tr.q?'<p class="qs">'+esc(tr.q)+'</p>':'')+
@@ -3150,7 +3199,7 @@ map.on('click',e=>{
   if(!best)return;
   const base=s=>s.replace(/[\s（(].*$/,'').replace(/\s/g,''),pl=PLAYS.find(x=>base(x.n)&&(base(x.n)===base(best.n)||x.n.includes(best.n)||best.n.includes(base(x.n))&&base(x.n).length>=3));
   const stel=window.__SPOTTEL&&window.__SPOTTEL[Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5)];
-  const html=`<div class="spotpop"><b>${esc(best.n)}</b><small><i style="background:var(--sp-${best.c})"></i>${SPOTNAME[best.c]}</small>${descHTML('s',Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5))}${telHTML(stel||(pl&&pl.tel),best.n,'')}${pl?`<button class="ghost" data-sp-play="${pl.id}">図鑑の「遊び場」で見る</button>`:''}</div>`;
+  const html=`<div class="spotpop"><b>${esc(best.n)}</b><small><i style="background:var(--sp-${best.c})"></i>${SPOTNAME[best.c]}</small>${descHTML('s',Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5))}${telHTML(stel||(pl&&pl.tel),best.n,'','spot:'+Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5))}${pl?`<button class="ghost" data-sp-play="${pl.id}">図鑑の「遊び場」で見る</button>`:''}</div>`;
   const pop=L.popup({className:'spot-popup',offset:[0,-4],autoPanPadding:[30,30]}).setLatLng(best.ring&&z>=SPOT_Z?e.latlng:[best.lat,best.lng]).setContent(html).openOn(map);
   setTimeout(()=>{const b=pop.getElement()&&pop.getElement().querySelector('[data-sp-play]');if(b)b.onclick=()=>{map.closePopup();openPlay(b.dataset.spPlay);};},0);
 });
