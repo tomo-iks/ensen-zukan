@@ -1842,7 +1842,7 @@ function dStyles0(z){
   return [['g','fill',{f:css('--park')}],['w','fill',{f:css('--water')}],['wl','line',{c:css('--water'),lw:4}],
     ['r2','line',{c:css('--bldgline'),lw:6}],['r1','line',{c:css('--bldgline'),lw:9}],['r3','line',{c:css('--road'),lw:2.5}],
     ['r2','line',{c:css('--road'),lw:4}],['r1','line',{c:css('--road1'),lw:7}],
-    ['b','fill',{f:css('--bldg'),c:z>=14?(b?css('--bldgline'):css('--land')):null,lw:b?.8:1.2}],['rl','line',{c:css('--ink2'),lw:2,dash:[7,5]}]].filter(s=>s[0]!=='rl'||z>=16);
+    ['b','fill',{f:css('--bldg'),c:z>=14?(b?css('--bldgline'):css('--land')):null,lw:b?.8:1.2}],['rl','line',{c:css('--ink2'),lw:2,dash:[7,5]}]].filter(s=>(s[0]!=='rl'||z>=16)&&!(s[0]==='b'&&z>=15)&&!(s[0]==='r3'&&z>=17));   // 拡大15以上は建物を描かず道路中心に、17以上は細い道も描かず主要な道(幹線・主要道路)だけにする
 }
 // 描画待ちのタイルを、1フレーム約8msずつ処理する（固まらないように）
 const drawQ=[];let drawing=false;
