@@ -643,12 +643,12 @@ body.flying #zoomind{opacity:.9}
    地図の色: 陸=明るい灰色 / 水=青 / 公園=淡い緑 / 道路=白(幹線は黄) / 建物=ベージュがかった灰色
    画面: 丸い検索バー、地図に浮かぶ丸いボタン、下から引き出せるシート(ドラッグで 小・中・大) */
 :root{--sea:#E9EAEB;--land:#F5F5F5;--land23:#F5F5F5;--border:#C9CCD1;--muni-on:#F5F5F5;--muni-edge:#D3D6DB;--muni-sel:#DCE8F8;
-  --park:#CBE7C1;--water:#AADAFF;--road:#FFFFFF;--road1:#FCE49A;--bldg:#E6E3DD;--bldgline:#D3CFC7;
+  --park:#CBE7C1;--water:#AADAFF;--road:#FFFFFF;--road1:#FCDC8C;--road1line:#E4B84F;--roadline:#D9DCE0;--bldg:#E9E6E0;--bldgline:#D8D4CC;
   --gshadow:0 1px 2px rgba(60,64,67,.3),0 2px 6px 2px rgba(60,64,67,.15)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--sea:#1E2733;--land:#242F3E;--land23:#242F3E;--border:#3A4657;--muni-on:#242F3E;--muni-edge:#3D4A5C;--muni-sel:#2A4A66;
-  --park:#263C3F;--water:#17263C;--road:#38414E;--road1:#746855;--bldg:#2C3747;--bldgline:#1F2937;--gshadow:0 1px 3px rgba(0,0,0,.6)}}
+  --park:#263C3F;--water:#17263C;--road:#3B4554;--road1:#7A6B4A;--road1line:#4F4631;--roadline:#1F2733;--bldg:#2D3849;--bldgline:#222C3A;--gshadow:0 1px 3px rgba(0,0,0,.6)}}
 :root[data-theme="dark"]{--sea:#1E2733;--land:#242F3E;--land23:#242F3E;--border:#3A4657;--muni-on:#242F3E;--muni-edge:#3D4A5C;--muni-sel:#2A4A66;
-  --park:#263C3F;--water:#17263C;--road:#38414E;--road1:#746855;--bldg:#2C3747;--bldgline:#1F2937;--gshadow:0 1px 3px rgba(0,0,0,.6)}
+  --park:#263C3F;--water:#17263C;--road:#3B4554;--road1:#7A6B4A;--road1line:#4F4631;--roadline:#1F2733;--bldg:#2D3849;--bldgline:#222C3A;--gshadow:0 1px 3px rgba(0,0,0,.6)}
 .muni-label{color:#70757A!important;font-weight:500;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff}
 :root[data-theme="dark"] .muni-label{color:#9AA0A6!important;text-shadow:0 0 2px #242F3E,0 0 3px #242F3E}
 /* 検索バー: 丸く、影で浮かせる */
@@ -1901,11 +1901,13 @@ function loadTile(k,cb){
 const dStyleMemo={};
 function dStyles(z){if(dStyleMemo[z])return dStyleMemo[z];return dStyleMemo[z]=dStyles0(z);}
 function dStyles0(z){
-  const b=z>=17;
-  return [['g','fill',{f:css('--park')}],['w','fill',{f:css('--water')}],['wl','line',{c:css('--water'),lw:4}],
-    ['r2','line',{c:css('--bldgline'),lw:6}],['r1','line',{c:css('--bldgline'),lw:9}],['r3','line',{c:css('--road'),lw:2.5}],
-    ['r2','line',{c:css('--road'),lw:4}],['r1','line',{c:css('--road1'),lw:7}],
-    ['b','fill',{f:css('--bldg'),c:z>=14?(b?css('--bldgline'):css('--land')):null,lw:b?.8:1.2}],['rl','line',{c:css('--ink2'),lw:2,dash:[7,5]}]].filter(s=>(s[0]!=='rl'||z>=16)&&!(s[0]==='b'&&z<=15)&&!(s[0]==='r3'&&z<=13));   // 拡大15以下は建物を描かず道路中心に、13以下は細い道も描かず主要な道(幹線・主要道路)だけにする
+  // 道の太さは、拡大に合わせて変える(拡大13で細く、17で太く。以前は全ての拡大で同じ太さで、広域で太すぎた)
+  const W=(a,b)=>a*Math.pow(b/a,Math.max(0,Math.min(1.3,(z-13)/4)));
+  const w1=W(2.2,9),w2=W(1.4,6.5),w3=W(.9,4),wl=W(1.2,4.5),b=z>=17;
+  return [['g','fill',{f:css('--park')}],['w','fill',{f:css('--water')}],['wl','line',{c:css('--water'),lw:wl}],
+    ['r2','line',{c:css('--roadline'),lw:w2+1.1}],['r1','line',{c:css('--road1line'),lw:w1+1.3}],['r3','line',{c:css('--roadline'),lw:w3+.9}],
+    ['r3','line',{c:css('--road'),lw:w3}],['r2','line',{c:css('--road'),lw:w2}],['r1','line',{c:css('--road1'),lw:w1}],
+    ['b','fill',{f:css('--bldg'),c:z>=14?(b?css('--bldgline'):css('--bldg')):null,lw:b?.8:1}],['rl','line',{c:css('--ink2'),lw:1.6,dash:[7,5]}]].filter(s=>(s[0]!=='rl'||z>=16)&&!(s[0]==='b'&&z<=15)&&!(s[0]==='r3'&&z<=13));   // 拡大15以下は建物を描かず道路中心に、13以下は細い道も描かず主要な道(幹線・主要道路)だけにする
 }
 // 描画待ちのタイルを、1フレーム約8msずつ処理する（固まらないように）
 const drawQ=[];let drawing=false;
