@@ -682,6 +682,22 @@ body.flying #zoomind{opacity:.9}
 .sheet-snap-hint{display:none}
 
 .tastebx{max-width:480px;padding:16px;overflow:auto}
+.treebx{max-height:90vh}
+.ttree,.tkids{list-style:none;margin:0;padding:0}
+.ttree li,.tkids li{position:relative;padding:3px 0 3px 22px}
+.tkids{margin-left:12px;animation:tgrow .28s ease-out}
+.tkids li::before{content:"";position:absolute;left:2px;top:0;bottom:0;border-left:2px solid var(--rule)}
+.tkids li::after{content:"";position:absolute;left:2px;top:24px;width:16px;border-top:2px solid var(--rule)}
+.tkids>li:last-child::before{bottom:auto;height:24px}
+.ttree>.troot{padding-left:0}
+.tn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 14px;border-radius:999px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);font-size:15px;max-width:100%;text-align:left}
+.tn small{font-family:var(--f-num);color:var(--ink2);font-size:13px}
+.tn .chev{color:var(--ink2);margin-left:2px}
+.tn.sel{background:color-mix(in srgb,var(--accent) 16%,var(--panel));border-color:var(--accent);color:var(--accent);font-weight:700}
+.tn.root{background:var(--ink);color:var(--panel);border-color:transparent}.tn.root.sel{background:var(--accent)}
+.tplaces .tcard{border:1px solid var(--rule);border-radius:var(--r);padding:8px 12px;background:var(--panel)}
+@keyframes tgrow{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
 .tasteh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.tasteh h2{margin:0;font-size:20px}
 .tkinds{flex-wrap:nowrap;overflow-x:auto;margin:0 -4px 10px;padding:2px 4px;scrollbar-width:none}.tkinds .chip{flex:none}
 .tgroup{margin:12px 0}.tgh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 6px}.tgh small{color:var(--ink2);font-size:12px}
@@ -3335,8 +3351,8 @@ const CAT_CHIPS=[['hotel','🛏 ホテル',['hotel']],['mus','🏛 美術館',['
     row.insertBefore(b,document.getElementById('recbtn'));
   });
 })();
-(function(){const row=document.querySelector('.row2');if(!row)return;const b=document.createElement('button');b.className='pill-btn';b.type='button';b.textContent='🧭 好みで選ぶ';b.id='btn-taste';
-  b.onclick=()=>openTaste('museum');row.insertBefore(b,row.querySelector('[data-catchip]')||document.getElementById('recbtn'));})();
+(function(){const row=document.querySelector('.row2');if(!row)return;const b=document.createElement('button');b.className='pill-btn';b.type='button';b.textContent='🌳 行き先を樹形図で';b.id='btn-taste';
+  b.onclick=()=>openTree();row.insertBefore(b,row.querySelector('[data-catchip]')||document.getElementById('recbtn'));})();
 function syncCatChips(){
   try{const s=new Set(S.ui.fac2.on);document.querySelectorAll('[data-catchip]').forEach(b=>{const c=CAT_CHIPS.find(x=>x[0]===b.dataset.catchip);b.setAttribute('aria-pressed',c[2].every(g=>s.has(g)));});}catch(e){}
 }
@@ -3506,6 +3522,156 @@ function similarHTML(key){
     '<div class="qs"><a href="#" data-open-taste="museum">好みから美術館を選ぶ</a></div></div>';
 }
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-open-taste]');if(a){e.preventDefault();openTaste(a.dataset.openTaste);}});
+
+// ---------- 樹形図で行きたい場所を選ぶ(押すほど、枝が詳細になる) ----------
+// 根「行きたい場所」→ 種類(食事・遊び場・美術館…)→ ジャンル → 系統・小ジャンル → 街(最寄り駅)→ 場所。
+// 選んだ枝だけを幹として残し、その先の枝を広げる。末端は、近い順の場所のカード。
+var treeState={path:[],shown:15},treeRootCache=null;
+const STN=()=>STATIONS.map(s=>({n:s.n,ll:L.latLng(s.ll[0],s.ll[1])}));
+let _stn=null;
+function nearStation(lat,lng){if(!_stn)_stn=STN();const p=L.latLng(lat,lng);let b=null,bd=1e9;_stn.forEach(s=>{const d=p.distanceTo(s.ll);if(d<bd){bd=d;b=s.n;}});return b;}
+function groupBy(items,fn){const m=new Map();items.forEach(it=>{const k=fn(it);if(!k)return;(m.get(k)||m.set(k,[]).get(k)).push(it);});return m;}
+function mkNodes(map,sub,order){   // Map<名前, items> → ノードの配列(件数の多い順)
+  const arr=[...map.entries()].map(([name,items])=>({label:name,count:items.length,items,sub}));
+  arr.sort(order||((a,b)=>b.count-a.count));return arr;
+}
+// 最後の段(街ごと)→ 場所
+function stationLevel(items){return {kids:()=>mkNodes(groupBy(items,it=>it.st),null)};}
+function mkNode(label,count,kidsFn,placesFn,icon){return {label,count,kids:kidsFn,places:placesFn,icon};}
+function cardsOf(items){return ()=>items;}
+function byStationNode(items){   // 街(最寄り駅)で分けてから、場所を出す
+  const g=groupBy(items,it=>it.st);
+  if(g.size<=1)return null;
+  return ()=>[...g.entries()].map(([s,its])=>mkNode(s+'周辺',its.length,null,cardsOf(its))).sort((a,b)=>b.count-a.count);
+}
+function leafOrStation(items,label,icon){
+  const k=byStationNode(items);
+  return mkNode(label,items.length,k,k?null:cardsOf(items),icon);
+}
+function treeRoots(){
+  if(treeRootCache&&treeRootCache.v===treeVer())return treeRootCache.roots;
+  const roots=[];
+  // 食事
+  if(SHOPS.length){
+    const items=SHOPS.filter(s=>s.ll).map(s=>({n:s.n,lat:s.ll[0],lng:s.ll[1],st:s.town,tag:s.g,desc:'',act:()=>openShop(s.id)}));
+    const g=groupBy(items,it=>{const s=SHOPS.find(x=>x.n===it.n);return s?BIGNAME[s.big]||'その他':null;});
+    roots.push(mkNode('食事',items.length,()=>[...g.entries()].map(([big,its])=>{
+      const g2=groupBy(its,it=>String(it.tag||'').split(/[、,・（(]/)[0]||'その他');
+      return mkNode(big,its.length,()=>[...g2.entries()].map(([gn,x])=>leafOrStation(x,gn)).sort((a,b)=>b.count-a.count));
+    }).sort((a,b)=>b.count-a.count),null,'🍜'));
+  }
+  // 遊び場
+  if(PLAYS.length){
+    const items=PLAYS.map(p=>({n:p.n,lat:(p.ll||BY[p.town].ll)[0],lng:(p.ll||BY[p.town].ll)[1],st:p.town,tag:p.g,desc:p.desc||'',big:p.big,act:()=>openPlay(p.id)}));
+    const g=groupBy(items,it=>PBIGNAME[it.big]||'その他');
+    roots.push(mkNode('遊び場',items.length,()=>[...g.entries()].map(([big,its])=>{
+      const g2=groupBy(its,it=>String(it.tag||'').split(/[、,・（(]/)[0]||'その他');
+      return mkNode(big,its.length,()=>[...g2.entries()].map(([gn,x])=>leafOrStation(x,gn)).sort((a,b)=>b.count-a.count));
+    }).sort((a,b)=>b.count-a.count),null,'🎡'));
+  }
+  // 美術館・博物館
+  if(MUS){
+    const D=tasteData('museum');
+    if(D){
+      const mk=it=>({n:it.n,lat:it.lat,lng:it.lng,st:nearStation(it.lat,it.lng),tag:'',desc:'',act:()=>tasteFocus(it)});
+      roots.push(mkNode('美術館・博物館',D.items.length,()=>D.tree.map(g=>{
+        const kids=g.kids.map(k=>{const its=D.items.filter(i=>i.l.includes(k.id)).map(mk);return its.length?leafOrStation(its,k.name):null;}).filter(Boolean);
+        return mkNode(g.name,kids.reduce((a,k)=>a+k.count,0),()=>kids.sort((a,b)=>b.count-a.count));
+      }),null,'🎨'));
+    }
+  }
+  // 寺社・公園・劇場・銭湯(スポット)
+  if(SPOTS){
+    TASTE_KINDS.filter(k=>k[0]!=='museum').forEach(([kind,name])=>{
+      const D=tasteData(kind);if(!D||!D.items.length)return;
+      const icon=name.split(' ')[0],label=name.replace(/^\S+\s/,'');
+      roots.push(mkNode(label,D.items.length,()=>D.tree.flatMap(g=>g.kids).map(k=>{
+        const its=D.items.filter(i=>i.l.includes(k.id)).map(i=>({n:i.n,lat:i.lat,lng:i.lng,st:nearStation(i.lat,i.lng),tag:'',desc:'',act:()=>tasteFocus(i)}));
+        return its.length?leafOrStation(its,k.name):null;
+      }).filter(Boolean).sort((a,b)=>b.count-a.count),null,icon));
+    });
+  }
+  // 施設(大学・図書館・ホテル・カラオケ)
+  if(FAC){
+    const FACG=[['大学・研究機関',['uni-n','uni-p','uni-s','res'],'🎓',{'uni-n':'国立大学','uni-p':'公立大学','uni-s':'私立大学','res':'国立の研究機関'}],['図書館',['lib-t','lib-p','lib-r','lib-m'],'📚',{'lib-t':'都立・国立','lib-p':'区立・市立','lib-r':'私営','lib-m':'図書館'}],['ホテル・宿泊',['hotel'],'🛏',null],['カラオケ',['kar'],'🎤',null]];
+    FACG.forEach(([label,types,icon,tn])=>{
+      const rows=FAC.map((r,i)=>({r,i})).filter(x=>types.includes(x.r[0]));if(!rows.length)return;
+      const mk=({r,i})=>({n:r[1],lat:r[2],lng:r[3],st:r[4],tag:'',desc:'',act:()=>{map.flyTo([r[2],r[3]],Math.max(map.getZoom(),15.5),{duration:1.1});map.once('moveend',()=>{try{facPopup(i);}catch(e){}});}});
+      if(tn){const g=groupBy(rows,x=>tn[x.r[0]]);
+        roots.push(mkNode(label,rows.length,()=>[...g.entries()].map(([nm,x])=>leafOrStation(x.map(mk),nm)).sort((a,b)=>b.count-a.count),null,icon));}
+      else{const its=rows.map(mk),k=byStationNode(its);roots.push(mkNode(label,its.length,k,k?null:cardsOf(its),icon));}
+    });
+  }
+  treeRootCache={v:treeVer(),roots};return roots;
+}
+function treeVer(){return [SHOPS.length,PLAYS.length,!!MUS,!!SPOTS,!!FAC,!!window.__DESC].join('|');}
+function treeNodeAt(path){let nodes=treeRoots(),n=null;const trail=[];
+  for(const i of path){n=nodes&&nodes[i];if(!n)break;trail.push(n);nodes=n.kids?n.kids():null;}
+  return {n,trail,nodes};}
+function treeDist(it){return L.latLng(it.lat,it.lng).distanceTo(map.getCenter());}
+function treeHTML(){
+  const roots=treeRoots(),path=treeState.path;
+  const loading=(!SPOTS||!FAC||!MUS)?'<p class="qs">一部のデータを読み込んでいます。少しお待ちください…</p>':'';
+  let h='<div class="tasteh"><h2>行きたい場所をえらぶ</h2><button class="back" data-tr="close">閉じる</button></div>';
+  h+='<p class="qs">枝を押すほど、詳しい枝に分かれます。最後は、近い順の場所です。</p>'+loading;
+  // パンくず(幹)
+  h+='<ul class="ttree"><li class="troot"><button class="tn root'+(path.length?'':' sel')+'" data-tr="root">📍 行きたい場所</button>';
+  const render=(nodes,depth)=>{
+    if(depth<path.length){
+      const n=nodes[path[depth]];if(!n)return '';
+      const kids=n.kids?n.kids():null;
+      return '<ul class="tkids"><li><button class="tn sel" data-tr="up'+depth+'">'+(n.icon?n.icon+' ':'')+esc(n.label)+'<small>'+n.count+'</small><span class="chev">▾</span></button>'+
+        (kids?render(kids,depth+1):(n.places?placesHTML(n):''))+'</li></ul>';
+    }
+    return '<ul class="tkids">'+nodes.map((n,i)=>'<li><button class="tn" data-tr="go'+i+'">'+(n.icon?n.icon+' ':'')+esc(n.label)+'<small>'+n.count+'</small><span class="chev">›</span></button></li>').join('')+'</ul>';
+  };
+  h+=render(roots,0);
+  h+='</li></ul>';
+  return h;
+}
+function placesHTML(n){
+  const items=n.places();const list=items.map(it=>({it,d:treeDist(it)})).sort((a,b)=>a.d-b.d);
+  treeHTML.list=list.map(x=>x.it);
+  let h='<ul class="tkids tplaces">';
+  list.slice(0,treeState.shown).forEach(({it,d},i)=>{
+    const dd=d>=1000?(d/1000).toFixed(1)+' km':Math.round(d/10)*10+' m';
+    h+='<li><div class="tcard"><div class="tc1"><b>'+esc(it.n)+'</b><span class="tdist">'+dd+'</span></div>'+
+      (it.st?'<div class="tc2"><span class="ttag">'+esc(it.st)+'</span>'+(it.tag?'<span class="ttag">'+esc(it.tag)+'</span>':'')+'</div>':'')+
+      '<div class="tc3"><button class="chip" data-tr="pl'+i+'">詳細を見る</button></div></div></li>';
+  });
+  if(list.length>treeState.shown)h+='<li><button class="ghost" data-tr="more">もっと見る（残り'+(list.length-treeState.shown)+'件）</button></li>';
+  h+='<li><button class="ghost" data-tr="mapall">この'+list.length+'件を、地図にまとめて表示</button></li></ul>';
+  return h;
+}
+function treeRerender(keepScroll){
+  const w=document.getElementById('tree');if(!w)return;const b=w.querySelector('.tastebx'),sc=b.scrollTop;
+  b.innerHTML=treeHTML();if(keepScroll)b.scrollTop=sc;
+}
+function openTree(){
+  if(document.getElementById('tree')){treeRerender();return;}
+  treeState={path:[],shown:15};
+  const w=document.createElement('div');w.id='tree';w.className='askbk';w.innerHTML='<div class="askbx tastebx treebx" role="dialog" aria-modal="true" aria-label="行きたい場所をえらぶ"></div>';
+  document.body.appendChild(w);L.DomEvent.disableClickPropagation(w);
+  w.addEventListener('click',e=>{
+    if(e.target===w){w.remove();return;}
+    const a=e.target.closest&&e.target.closest('[data-tr]');if(!a)return;const k=a.dataset.tr;
+    if(k==='close'){w.remove();return;}
+    if(k==='root'){treeState.path=[];treeState.shown=15;treeRerender();return;}
+    if(k==='more'){treeState.shown+=15;treeRerender(true);return;}
+    if(k==='mapall'){const {n}=treeNodeAt(treeState.path);const its=n&&n.places?n.places():[];if(its.length){tasteLayer.clearLayers();const pts=[];its.slice(0,150).forEach(it=>{const m=L.circleMarker([it.lat,it.lng],{radius:8,color:'#fff',weight:2.5,fillColor:'#1A73E8',fillOpacity:1});m.bindTooltip(it.n,{direction:'top',offset:[0,-8]});m.on('click',()=>{try{it.act();}catch(_){}});m.addTo(tasteLayer);pts.push([it.lat,it.lng]);});w.remove();try{map.fitBounds(L.latLngBounds(pts).pad(.2),{maxZoom:15});}catch(_){}toast(its.length+'件を、青い点で表示しました');}return;}
+    let m;
+    if(m=/^up(\d+)$/.exec(k)){treeState.path=treeState.path.slice(0,+m[1]);treeState.shown=15;treeRerender();return;}   // その枝まで戻る
+    if(m=/^go(\d+)$/.exec(k)){treeState.path=treeState.path.concat(+m[1]);treeState.shown=15;treeRerender();
+      const b=w.querySelector('.tastebx'),sel=b.querySelectorAll('.tn.sel');const last=sel[sel.length-1];if(last)last.scrollIntoView({block:'start',behavior:'smooth'});return;}
+    if(m=/^pl(\d+)$/.exec(k)){const it=treeHTML.list&&treeHTML.list[+m[1]];if(it){w.remove();document.getElementById('taste')&&document.getElementById('taste').remove();try{it.act();}catch(_){}}return;}
+  });
+  // データ(店・遊び場・施設・スポット・美術館・説明)を読み込む。読み込めた順に、枝が増える
+  loadFac();loadSpots();loadMuseum(()=>treeRerender(true));loadDesc(()=>treeRerender(true));
+  const t0=Date.now(),iv=setInterval(()=>{if(!document.getElementById('tree')||Date.now()-t0>30000){clearInterval(iv);return;}const v=treeVer();if(v!==treeOnce.v){treeOnce.v=v;treeRerender(true);}},1500);
+  treeRerender();
+}
+var treeOnce={};
+
 afterBoot(()=>{loadMuseum();},7000);
 
 if(S.ui.spots.mode!=='off')setSpotMode(S.ui.spots.mode);
