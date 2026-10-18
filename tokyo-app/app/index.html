@@ -638,6 +638,49 @@ body.panelfade #top,body.panelfade #walkbar{animation:topin 1.6s cubic-bezier(.2
 #zoomind .zi-bar i{display:block;height:6px;border:2px solid var(--ink);border-top:0;box-sizing:border-box}
 @media (min-width:860px){#zoomind{left:auto;right:64px;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 30px)}}
 body.flying #zoomind{opacity:.9}
+
+/* ===== v26 Googleマップを参考にした見た目と操作 =====
+   地図の色: 陸=明るい灰色 / 水=青 / 公園=淡い緑 / 道路=白(幹線は黄) / 建物=ベージュがかった灰色
+   画面: 丸い検索バー、地図に浮かぶ丸いボタン、下から引き出せるシート(ドラッグで 小・中・大) */
+:root{--sea:#E9EAEB;--land:#F5F5F5;--land23:#F5F5F5;--border:#C9CCD1;--muni-on:#F5F5F5;--muni-edge:#D3D6DB;--muni-sel:#DCE8F8;
+  --park:#CBE7C1;--water:#AADAFF;--road:#FFFFFF;--road1:#FCE49A;--bldg:#E6E3DD;--bldgline:#D3CFC7;
+  --gshadow:0 1px 2px rgba(60,64,67,.3),0 2px 6px 2px rgba(60,64,67,.15)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--sea:#1E2733;--land:#242F3E;--land23:#242F3E;--border:#3A4657;--muni-on:#242F3E;--muni-edge:#3D4A5C;--muni-sel:#2A4A66;
+  --park:#263C3F;--water:#17263C;--road:#38414E;--road1:#746855;--bldg:#2C3747;--bldgline:#1F2937;--gshadow:0 1px 3px rgba(0,0,0,.6)}}
+:root[data-theme="dark"]{--sea:#1E2733;--land:#242F3E;--land23:#242F3E;--border:#3A4657;--muni-on:#242F3E;--muni-edge:#3D4A5C;--muni-sel:#2A4A66;
+  --park:#263C3F;--water:#17263C;--road:#38414E;--road1:#746855;--bldg:#2C3747;--bldgline:#1F2937;--gshadow:0 1px 3px rgba(0,0,0,.6)}
+.muni-label{color:#70757A!important;font-weight:500;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff}
+:root[data-theme="dark"] .muni-label{color:#9AA0A6!important;text-shadow:0 0 2px #242F3E,0 0 3px #242F3E}
+/* 検索バー: 丸く、影で浮かせる */
+.search{border-radius:28px!important;min-height:48px;box-shadow:var(--gshadow)!important;padding-left:14px}
+.search input{font-size:16px}
+/* 条件のチップ: 白い丸、影で浮かせる(横に流れる) */
+.row2 .pill-btn,.row2 .seg{background:var(--panel);box-shadow:var(--gshadow);border:0;border-radius:999px}
+.row2 .pill-btn{min-height:36px;padding:6px 14px;font-weight:500;color:var(--ink)}
+.row2 .pill-btn[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 16%,var(--panel));color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset,var(--gshadow)}
+.row2 .seg button{border-radius:999px}
+/* 地図の丸いボタン */
+.leaflet-bar{border:0!important;box-shadow:none!important;background:none!important}
+.leaflet-bar a,.leaflet-touch .leaflet-bar a,.mapctl a{width:44px!important;height:44px!important;border-radius:50%!important;border:0!important;margin:0 0 10px!important;background:var(--panel)!important;color:var(--ink)!important;box-shadow:var(--gshadow);display:flex!important;align-items:center;justify-content:center}
+.leaflet-control-zoom a:first-child,.leaflet-control-zoom a:last-child{border-radius:50%!important}
+.leaflet-right .leaflet-control{margin-right:12px}
+@media (pointer:coarse){.leaflet-control-zoom{display:none}}   /* スマホは、ピンチで拡大縮小(Googleマップと同じ) */
+@media (max-width:859px){
+  /* 右の丸いボタンは、シートのすぐ上(右下)に置く。シートの高さに合わせて動く */
+  .leaflet-top.leaflet-right{top:auto!important;bottom:calc(var(--sheet-h,0px) + 14px);transition:bottom .28s cubic-bezier(.2,.8,.2,1)}
+  body.maponly .leaflet-top.leaflet-right{bottom:84px}
+  #zoomind{top:auto!important;left:12px!important;bottom:calc(var(--sheet-h,0px) + 18px);transition:bottom .28s cubic-bezier(.2,.8,.2,1)}
+  body.maponly #zoomind{bottom:34px}
+  /* 下のシート: 高さを、ドラッグで 小・中・大 に変えられる */
+  #panel{height:var(--sheet-set,46vh);max-height:none!important;border-radius:16px 16px 0 0!important;transition:height .28s cubic-bezier(.2,.8,.2,1)}
+  #panel.dragging{transition:none}
+  #panel.collapsed{height:auto}
+  #panel .phead{touch-action:none;cursor:grab}
+  .handle{width:36px;height:4px;margin:4px 0 8px;background:#DADCE0}
+  .pbody{flex:1;min-height:0}
+}
+.sheet-snap-hint{display:none}
+
 .sb-h2{margin:10px 0 6px;font-weight:700;font-size:13px;color:var(--ink2)}
 .fpin{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;font:700 14px var(--f-disp);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);transform:scale(var(--zs,1));box-sizing:border-box}
 .fpin.big{width:34px;height:34px;font-size:17px;border-radius:50% 50% 50% 4px;border-width:2.5px}
@@ -3170,6 +3213,7 @@ function setSpotMode(m){S.ui.spots.mode=m;save();if(m!=='off'){loadSpots();if(!m
 const spotBar=document.createElement('div');spotBar.id='spotbar';spotBar.hidden=true;document.body.appendChild(spotBar);
 L.DomEvent.disableClickPropagation(spotBar);L.DomEvent.disableScrollPropagation(spotBar);
 function paintSpotBar(){
+  try{syncCatChips();}catch(e){}
   const m=S.ui.spots.mode,on=new Set(S.ui.spots.on),b=document.getElementById('btn-spots');if(b)b.classList.toggle('on',m!=='off'||S.ui.fac2.on.length>0);
   if(spotBar.hidden)return;
   const cnt=c=>SPOTS?SPOTS.filter(p=>p.c===c).length:'';
@@ -3204,6 +3248,69 @@ map.on('click',e=>{
   setTimeout(()=>{const b=pop.getElement()&&pop.getElement().querySelector('[data-sp-play]');if(b)b.onclick=()=>{map.closePopup();openPlay(b.dataset.spPlay);};},0);
 });
 document.getElementById('btn-spots').onclick=e=>{e.preventDefault();spotBar.hidden=!spotBar.hidden;paintSpotBar();};
+
+// ---------- 下のシート: ドラッグで 小・中・大 に動かす(スマホ) ----------
+(function(){
+  const phead=panel.querySelector('.phead');if(!phead)return;
+  const mq=matchMedia('(max-width:859px)'),H=()=>innerHeight,SNAP=()=>[Math.round(H()*.14),Math.round(H()*.46),Math.round(H()*.86)];   // 小(つまみとタブだけ)・中・大
+  const sync=()=>{
+    const on=mq.matches&&!document.body.classList.contains('maponly');
+    document.documentElement.style.setProperty('--sheet-h',(on?panel.offsetHeight:0)+'px');
+  };
+  try{new ResizeObserver(sync).observe(panel);}catch(e){}
+  addEventListener('resize',sync);
+  new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['class']});
+  let y0=0,h0=0,drag=false,moved=false;
+  phead.addEventListener('pointerdown',e=>{
+    if(!mq.matches||e.target.closest('.tabs button'))return;
+    drag=true;moved=false;y0=e.clientY;h0=panel.offsetHeight;panel.classList.add('dragging');panel.classList.remove('collapsed');
+  });
+  window.addEventListener('pointermove',e=>{
+    if(!drag)return;const dy=e.clientY-y0;if(Math.abs(dy)>3)moved=true;
+    const s=SNAP();panel.style.setProperty('--sheet-set',Math.max(s[0],Math.min(s[2],h0-dy))+'px');
+  });
+  const end=e=>{
+    if(!drag)return;drag=false;panel.classList.remove('dragging');
+    const cur=panel.offsetHeight,s=SNAP();
+    // 指の動きの向きも見て、近い段に止める
+    let best=s[0];s.forEach(v=>{if(Math.abs(v-cur)<Math.abs(best-cur))best=v;});
+    panel.style.setProperty('--sheet-set',best+'px');
+    try{S.ui.sheet=best;save();}catch(_){}
+    if(!moved){}   // つまみを押しただけのときは、既存の開閉
+    setTimeout(sync,320);
+  };
+  window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end);
+  // 最初の高さ(前回の高さ、または 中)
+  if(mq.matches){const s=SNAP();panel.style.setProperty('--sheet-set',Math.max(s[0],Math.min(s[2],S.ui.sheet||s[1]))+'px');}
+  // つまみを押すと、中 ⇄ 小 を切り替える(これまでの「開閉」)
+  const hb=document.getElementById('handle');
+  if(hb){hb.onclick=()=>{
+    if(moved)return;
+    if(!mq.matches){panel.classList.toggle('collapsed');return;}
+    const s=SNAP(),cur=panel.offsetHeight,to=cur>s[0]+30?s[0]:s[1];
+    panel.classList.remove('collapsed');panel.style.setProperty('--sheet-set',to+'px');setTimeout(sync,320);};}
+  setTimeout(sync,50);
+})();
+// ---------- 地図の上のカテゴリ(Googleマップのチップのように、押すとピンを出し入れする) ----------
+const CAT_CHIPS=[['hotel','🛏 ホテル',['hotel']],['mus','🏛 美術館',['mus']],['uni','🎓 大学',['uni']],['lib','📚 図書館',['lib']],['kar','🎤 カラオケ',['kar']]];
+(function(){
+  const row=document.querySelector('.row2');if(!row)return;
+  CAT_CHIPS.forEach(([k,label,groups])=>{
+    const b=document.createElement('button');b.className='pill-btn';b.dataset.catchip=k;b.type='button';b.textContent=label;b.setAttribute('aria-pressed','false');
+    b.onclick=()=>{
+      const s=new Set(S.ui.fac2.on),on=groups.every(g=>s.has(g));
+      groups.forEach(g=>on?s.delete(g):s.add(g));
+      S.ui.fac2.on=[...s];S.ui.fac=S.ui.fac2;save();if(s.size)loadFac();refreshFac();syncCatChips();try{paintSpotBar();}catch(e){}
+      if(!on){const zm=Math.max(...groups.map(g=>Math.max(...Object.values(FAC_TYPES).filter(T=>T.g===g).map(T=>T.z))));if(map.getZoom()<zm)map.setZoom(Math.ceil(zm*2)/2);}   // 見える縮尺まで寄る
+    };
+    row.insertBefore(b,document.getElementById('recbtn'));
+  });
+})();
+function syncCatChips(){
+  try{const s=new Set(S.ui.fac2.on);document.querySelectorAll('[data-catchip]').forEach(b=>{const c=CAT_CHIPS.find(x=>x[0]===b.dataset.catchip);b.setAttribute('aria-pressed',c[2].every(g=>s.has(g)));});}catch(e){}
+}
+syncCatChips();
+
 if(S.ui.spots.mode!=='off')setSpotMode(S.ui.spots.mode);
 
 // ---------- 設定画面 ----------
