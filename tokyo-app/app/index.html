@@ -2405,14 +2405,22 @@ function loadDesc(cb){
   if(window.__DESC){cb&&cb();return;}
   if(cb)descWait.push(cb);
   if(descState)return;descState=1;
+  const done=()=>{descState=2;descWait.splice(0).forEach(f=>{try{f();}catch(e){}});};
   const s=document.createElement('script');s.src='descs.js';s.async=true;
-  s.onload=()=>{descState=2;descWait.splice(0).forEach(f=>{try{f();}catch(e){}});};s.onerror=()=>{descState=3;};
+  s.onload=()=>{   // 営業時間(hours.js)も続けて読み込む。なくても説明は出す
+    const h=document.createElement('script');h.src='hours.js';h.async=true;h.onload=done;h.onerror=done;document.head.appendChild(h);};
+  s.onerror=()=>{descState=3;};
   document.head.appendChild(s);
 }
+function hoursHTML(kind,key){
+  const h=window.__HOURS&&window.__HOURS[kind]&&window.__HOURS[kind][key];if(!h||!h[0])return '';
+  return '<p class="fdesc"><b>営業時間</b>　'+esc(h[0])+(h[1]?'　<span class="ttag">'+esc(h[1])+'</span>':'')+'</p><p class="qs fsrc">出典: © OpenStreetMap contributors。変更・休業の場合があります。</p>';
+}
 function descHTML(kind,key){
-  const d=window.__DESC&&window.__DESC[kind]&&window.__DESC[kind][key];if(!d||!d[0])return '';
+  const hh=hoursHTML(kind,key);
+  const d=window.__DESC&&window.__DESC[kind]&&window.__DESC[kind][key];if(!d||!d[0])return hh;
   const wp=/^Wikipedia/.test(d[1]||'');
-  return '<p class="fdesc">'+esc(d[0])+'</p><p class="qs fsrc">出典: '+(d[2]?'<a href="'+esc(d[2])+'" target="_blank" rel="noopener">'+esc(d[1])+'</a>':esc(d[1]||''))+(wp?'（CC BY-SA）':'')+'</p>';
+  return '<p class="fdesc">'+esc(d[0])+'</p><p class="qs fsrc">出典: '+(d[2]?'<a href="'+esc(d[2])+'" target="_blank" rel="noopener">'+esc(d[1])+'</a>':esc(d[1]||''))+(wp?'（CC BY-SA）':'')+'</p>'+hh;
 }
 // ---------- 電話番号: 公開データにない番号は、Googleマップで見て、コピーした番号を登録できる(端末内にだけ保存) ----------
 // Googleマップの中身を、アプリが自動で読み取ることはできない(別のサイトで、利用条件もある)。そのため、
@@ -3495,7 +3503,7 @@ function tasteFocus(it,noFly){
     let tel='';if(it.dkey.kind==='s'){tel=(window.__SPOTTEL&&window.__SPOTTEL[it.dkey.key])||'';}
     else if(typeof FAC!=='undefined'&&FAC){const r=FAC.find(x=>(x[1]+'|'+x[2]+'|'+x[3])===it.dkey.key);if(r)tel=r[6]||'';}
     const html='<div class="spotpop"><b>'+esc(it.n)+'</b><small>'+it.l.map(l=>esc(name[l]||'')).filter(Boolean).join('・')+'</small>'+
-      (de&&de[0]?'<p class="fdesc">'+esc(de[0])+'</p><p class="qs fsrc">出典: '+esc(de[1]||'')+'</p>':'')+
+      (de&&de[0]?'<p class="fdesc">'+esc(de[0])+'</p><p class="qs fsrc">出典: '+esc(de[1]||'')+'</p>':'')+hoursHTML(it.dkey.kind,it.dkey.key)+
       telHTML(tel,it.n,'', 'taste:'+it.key)+'</div>';
     L.popup({className:'spot-popup',offset:[0,-12],maxWidth:300}).setLatLng([it.lat,it.lng]).setContent(html).openOn(map);
   };
