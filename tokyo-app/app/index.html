@@ -238,7 +238,7 @@ window.__V=(function(){
 <script>
 window.__bootErr=null;
 window.__goQ=[];
-window.__go=function(){var b=document.getElementById('boot');if(b)b.classList.add('go');document.body.classList.add('bootplay');setTimeout(function(){try{if(window.__landing)window.__landing();}catch(e){}},3300);window.__goDone=1;try{if(window.__bootGo)window.__bootGo();}catch(e){}var q=window.__goQ;window.__goQ=null;if(q)q.forEach(function(a){setTimeout(a[0],a[1]+4700);});};
+window.__go=function(){if(window.__goDone)return;var b=document.getElementById('boot');if(b)b.classList.add('go');document.body.classList.add('bootplay');setTimeout(function(){try{if(window.__landing)window.__landing();}catch(e){}},3300);window.__goDone=1;try{if(window.__bootGo)window.__bootGo();}catch(e){}var q=window.__goQ;window.__goQ=null;if(q)q.forEach(function(a){setTimeout(a[0],a[1]+4700);});};
 window.afterBoot=function(f,m){if(window.__goQ)window.__goQ.push([f,m||0]);else setTimeout(f,m||0);};
 setTimeout(window.__go,15000);
 window.addEventListener('error',function(e){if(!window.__bootErr)window.__bootErr=String(e.message||'')+(e.filename?' @'+String(e.filename).split('/').pop()+':'+e.lineno:'');});
@@ -681,6 +681,22 @@ body.flying #zoomind{opacity:.9}
 }
 .sheet-snap-hint{display:none}
 
+.tastebx{max-width:480px;padding:16px;overflow:auto}
+.tasteh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.tasteh h2{margin:0;font-size:20px}
+.tkinds{flex-wrap:nowrap;overflow-x:auto;margin:0 -4px 10px;padding:2px 4px;scrollbar-width:none}.tkinds .chip{flex:none}
+.tgroup{margin:12px 0}.tgh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 6px}.tgh small{color:var(--ink2);font-size:12px}
+.tleaves{display:flex;flex-wrap:wrap;gap:8px}
+.tleaf{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:6px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);font-size:14px}
+.tleaf small{color:var(--ink2);font-family:var(--f-num)}
+.tleaf[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 16%,var(--panel));border-color:var(--accent);color:var(--accent);font-weight:700}
+.tq{margin:8px 0 0;padding-left:18px;font-size:12.5px;color:var(--ink2);line-height:1.6}.tq b{color:var(--ink)}
+.tres{margin-top:16px;border-top:1px solid var(--rule);padding-top:12px}
+.tcard{padding:10px 0;border-bottom:1px solid var(--rule)}.tc1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.tdist{font-size:12px;color:var(--ink2);white-space:nowrap}
+.tc2{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.ttag{font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--ink2)}.ttag.on{background:color-mix(in srgb,var(--accent) 16%,var(--panel));color:var(--accent);font-weight:700}
+.tmatch{font-size:11.5px;color:#B26A00;font-weight:700}
+.tdesc{margin:2px 0 6px;font-size:13px;line-height:1.6}.tc3{display:flex;gap:8px}
+.simbx{margin:8px 0 4px;padding:8px 10px;border-radius:var(--r);background:var(--chip)}.simbx .qs{margin:2px 0}
+#taste{z-index:3100}
 .sb-h2{margin:10px 0 6px;font-weight:700;font-size:13px;color:var(--ink2)}
 .fpin{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;font:700 14px var(--f-disp);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);transform:scale(var(--zs,1));box-sizing:border-box}
 .fpin.big{width:34px;height:34px;font-size:17px;border-radius:50% 50% 50% 4px;border-width:2.5px}
@@ -1406,6 +1422,10 @@ function layoutLabels(){
 }
 function styleMarkers(){
   const hide=quiz&&quiz.mode==='pos'&&!quiz.answered;
+  // 拡大・縮小のたびに、46の駅の点・路線・53の区の見た目を、すべて付け直さない(選択・路線・記録・テーマ・点の大きさが変わったときだけ)
+  const key=[sel,line,cat,hide,osmOn,dotR(),LINE_MUNI.size,document.documentElement.dataset.theme||'',JSON.stringify(S.rec)].join('|');
+  if(key===styleMarkers._key){try{layoutLabels();}catch(e){}return;}
+  styleMarkers._key=key;
   STATIONS.forEach(s=>{
     const m=markers[s.n],r=S.rec[s.n]||{},on=inLine(s)&&(!cat||s.c===cat);
     const fill=r.v?css('--ok'):r.w?css('--want'):css('--panel');
@@ -1891,7 +1911,9 @@ function dStyles0(z){
 const drawQ=[];let drawing=false;
 function pumpDraw(){
   if(drawing)return;drawing=true;
-  const step=()=>{const t0=performance.now();
+  const busy=()=>{try{return !!(map._animatingZoom||(map._panAnim&&map._panAnim._inProgress)||(map.dragging&&map.dragging._draggable&&map.dragging._draggable._moving)||(map.touchZoom&&map.touchZoom._zooming));}catch(e){return false;}};
+  const step=()=>{if(busy()){requestAnimationFrame(step);return;}   // 指で動かしている間・拡大の動きの間は、地図の描画を待つ(動きをなめらかに)
+    const t0=performance.now();
     while(drawQ.length&&performance.now()-t0<8){const job=drawQ[0];if(job.run()){drawQ.shift();}}
     if(drawQ.length)requestAnimationFrame(step);else drawing=false;};
   requestAnimationFrame(step);
@@ -1902,7 +1924,7 @@ const DetailLayer=L.GridLayer.extend({
   createTile(co,done){
     if(!window.__bootOver){const e=document.createElement('canvas');setTimeout(()=>done(null,e),0);return e;}   // 起動の演出中は、重い詳細地図を作らない(終わってから描き直す)
     const ck='d'+co.z+'/'+co.x+'/'+co.y,hit=tcGet(ck);if(hit&&!hit.isConnected){setTimeout(()=>done(null,hit),0);return hit;}
-    const size=this.getTileSize(),dpr=Math.min(co.z>=16?3:2,window.devicePixelRatio||1),cv=document.createElement('canvas');cv._ck=ck;
+    const size=this.getTileSize(),dpr=Math.min(co.z>=16?2:1.5,window.devicePixelRatio||1),cv=document.createElement('canvas');cv._ck=ck;
     cv.width=size.x*dpr;cv.height=size.y*dpr;
     const nw=map.unproject(co.scaleBy(size),co.z),se=map.unproject(co.add([1,1]).scaleBy(size),co.z);
     const keys=[];for(let i=Math.floor(se.lat/TDLAT);i<=Math.floor(nw.lat/TDLAT);i++)for(let j=Math.floor(nw.lng/TDLNG);j<=Math.floor(se.lng/TDLNG);j++){const k=i+'_'+j;if(TILESET.has(k))keys.push(k);}
@@ -2230,15 +2252,18 @@ function styleDots(){
   const key=[mode,town,sel,markVer,dk,mode==='food'?JSON.stringify(FF):mode==='play'?JSON.stringify(PF):''].join('|');
   if(key===dotKey||!dotLayer)return;dotKey=key;
   const accent=css('--accent'),panel=css('--panel');
+  const K=dsc(),kk=K.toFixed(2),vb=map.getBounds().pad(.3);   // 点の大きさは、画面に見えている点だけを付け直す(拡大のたびに2千個の点を全部付け直さない)
   dotAll.forEach(m=>{
     const d=m._d,ok=!mode?(dk==='all'||(dk==='food'?m._t==='s':m._t==='p')):mode==='food'?m._t==='s'&&shopMatch(d):m._t==='p'&&playMatch(d),isSel=d.id===sel;
     const mk=markOf(d.id),st=(!ok&&!isSel?'off':isSel?'sel':mode?'hi':'n')+(mk?'-'+mk:'');
-    if(m._st===st)return;m._st=st;
-    if(st.startsWith('off')){if(dotLayer.hasLayer(m))dotLayer.removeLayer(m);return;}
+    const stK=st+'@'+kk;
+    if(m._st===stK)return;
+    if(st.startsWith('off')){m._st=stK;if(dotLayer.hasLayer(m))dotLayer.removeLayer(m);return;}
     if(!dotLayer.hasLayer(m))dotLayer.addLayer(m);
+    if(!vb.contains(m.getLatLng()))return;   // 画面の外は、見えるようになったときに付ける
+    m._st=stK;
     // 行きたい＝金色の太い縁、行った＝濃い縁（印のある点は少し大きく）
     const ring=mk==='w'?{color:css('--want'),weight:3}:mk==='v'?{color:css('--ink'),weight:2.5}:null;
-    const K=dsc();
     m.setStyle(st.startsWith('sel')?{radius:10*K,weight:3.5,color:accent}:Object.assign(st.startsWith('hi')?{radius:7.5*K,weight:2.5,color:panel}:{radius:(mk?6.5:5)*K,weight:1.5,color:panel},ring||{}));
     if(!st.startsWith('n')||mk)m.bringToFront();
   });
@@ -2258,7 +2283,8 @@ function refreshRecs(){
   else{if(dotLayer&&map.hasLayer(dotLayer))map.removeLayer(dotLayer);selLayer.clearLayers();dotKey='';}
 }
 map.on('zoomend',refreshRecs);
-map.on('zoomend',()=>{document.documentElement.style.setProperty('--zs',dsc().toFixed(2));if(dotLayer&&map.hasLayer(dotLayer)){dotKey='';dotAll.forEach(m=>{m._st=null;});styleDots();}});
+map.on('zoomend',()=>{document.documentElement.style.setProperty('--zs',dsc().toFixed(2));if(dotLayer&&map.hasLayer(dotLayer)){dotKey='';styleDots();}});
+{let dt=0;map.on('moveend',()=>{clearTimeout(dt);dt=setTimeout(()=>{if(dotLayer&&map.hasLayer(dotLayer)){dotKey='';styleDots();}},120);});}
 function openRec(id){
   const r=RECS.find(x=>x.id===id);if(!r)return;
   setMapOnly(false);panel.classList.remove('collapsed');
@@ -3118,11 +3144,11 @@ function refreshFac(){
       want.set(i,T);
     }
   }
-  facMk.forEach((m,i)=>{if(!want.has(i)||m._z!==Math.round(z*2)){facLayer.removeLayer(m);facMk.delete(i);}});
+  facMk.forEach((m,i)=>{const T0=want.get(i);if(!T0||m._lab!==(T0.big&&z>=(FAC[i][0]==='uni-s'?14:12.5)?1:0)){facLayer.removeLayer(m);facMk.delete(i);}});
   want.forEach((T,i)=>{
     if(facMk.has(i))return;
     const f=FAC[i],m=L.marker([f[2],f[3]],{icon:facIcon(f,T),zIndexOffset:T.big?400:100,keyboard:false,title:f[1]});
-    m._z=Math.round(z*2);
+    m._lab=(T.big&&z>=(f[0]==='uni-s'?14:12.5))?1:0;
     m.on('click',()=>facPopup(i));m.addTo(facLayer);facMk.set(i,m);
   });
 }
@@ -3131,6 +3157,7 @@ function facPopup(i){
   const gm='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(f[1]+' '+f[2]+','+f[3]);
   let h='<div class="spotpop facpop"><b>'+esc(f[1])+'</b><small><i class="fdot f-'+(f[0].indexOf('lib')===0?'lib':f[0])+'"></i>'+T.name+'　'+esc(f[4])+'駅の近く</small>';
   h+=descHTML('f',f[1]+'|'+f[2]+'|'+f[3]);
+  if(f[0]==='mus'&&typeof similarHTML==='function')h+=similarHTML('f:'+f[1]+'|'+f[2]+'|'+f[3]);
   if(!window.__DESC)loadDesc(()=>{try{if(map._popup&&map._popup.isOpen())facPopup(i);}catch(e){}});
   h+=telHTML(f[6],f[1],f[4]+'駅','fac:'+f[1]+'|'+f[2]+'|'+f[3]);
   if(tr){
@@ -3142,7 +3169,7 @@ function facPopup(i){
   h+='<p style="margin:8px 0 0">'+(f[5]?'<a href="'+esc(f[5])+'" target="_blank" rel="noopener">公式サイト</a>　':'')+'<a href="'+gm+'" target="_blank" rel="noopener">Googleマップで開く</a></p></div>';
   L.popup({className:'spot-popup',offset:[0,-10],maxWidth:300}).setLatLng([f[2],f[3]]).setContent(h).openOn(map);
 }
-map.on('moveend zoomend',()=>{try{refreshFac();}catch(e){}});
+{let ft=0;map.on('moveend zoomend',()=>{clearTimeout(ft);ft=setTimeout(()=>{try{refreshFac();}catch(e){}},180);});}   // 動かしている間は更新せず、止まってから1回だけ
 // 表示する種類を選ぶ小さなパネル
 const facBar=document.createElement('div');facBar.id='facbar';facBar.hidden=true;document.body.appendChild(facBar);
 function paintFacBar(){
@@ -3243,7 +3270,7 @@ map.on('click',e=>{
   if(!best)return;
   const base=s=>s.replace(/[\s（(].*$/,'').replace(/\s/g,''),pl=PLAYS.find(x=>base(x.n)&&(base(x.n)===base(best.n)||x.n.includes(best.n)||best.n.includes(base(x.n))&&base(x.n).length>=3));
   const stel=window.__SPOTTEL&&window.__SPOTTEL[Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5)];
-  const html=`<div class="spotpop"><b>${esc(best.n)}</b><small><i style="background:var(--sp-${best.c})"></i>${SPOTNAME[best.c]}</small>${descHTML('s',Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5))}${telHTML(stel||(pl&&pl.tel),best.n,'','spot:'+Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5))}${pl?`<button class="ghost" data-sp-play="${pl.id}">図鑑の「遊び場」で見る</button>`:''}</div>`;
+  const html=`<div class="spotpop"><b>${esc(best.n)}</b><small><i style="background:var(--sp-${best.c})"></i>${SPOTNAME[best.c]}</small>${descHTML('s',Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5))}${best.c==='museum'&&typeof similarHTML==='function'?similarHTML('s:'+Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5)):''}${telHTML(stel||(pl&&pl.tel),best.n,'','spot:'+Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5))}${pl?`<button class="ghost" data-sp-play="${pl.id}">図鑑の「遊び場」で見る</button>`:''}</div>`;
   const pop=L.popup({className:'spot-popup',offset:[0,-4],autoPanPadding:[30,30]}).setLatLng(best.ring&&z>=SPOT_Z?e.latlng:[best.lat,best.lng]).setContent(html).openOn(map);
   setTimeout(()=>{const b=pop.getElement()&&pop.getElement().querySelector('[data-sp-play]');if(b)b.onclick=()=>{map.closePopup();openPlay(b.dataset.spPlay);};},0);
 });
@@ -3306,10 +3333,178 @@ const CAT_CHIPS=[['hotel','🛏 ホテル',['hotel']],['mus','🏛 美術館',['
     row.insertBefore(b,document.getElementById('recbtn'));
   });
 })();
+(function(){const row=document.querySelector('.row2');if(!row)return;const b=document.createElement('button');b.className='pill-btn';b.type='button';b.textContent='🧭 好みで選ぶ';b.id='btn-taste';
+  b.onclick=()=>openTaste('museum');row.insertBefore(b,row.querySelector('[data-catchip]')||document.getElementById('recbtn'));})();
 function syncCatChips(){
   try{const s=new Set(S.ui.fac2.on);document.querySelectorAll('[data-catchip]').forEach(b=>{const c=CAT_CHIPS.find(x=>x[0]===b.dataset.catchip);b.setAttribute('aria-pressed',c[2].every(g=>s.has(g)));});}catch(e){}
 }
 syncCatChips();
+
+// ---------- 好みから選ぶ(系統樹): 美術館・博物館 / 寺社 / 公園・庭園 / 劇場・ホール / 銭湯・温泉 ----------
+// 系統(ジャンル)の木を見て、好きなものを選ぶと、近くのおすすめを出す。美術館・博物館は museums.js(名前と説明文からの分類)。
+// そのほかは、スポットの名前と説明文のキーワードで、その場で分類する(目安)。
+var MUS=null,musState=0;
+function loadMuseum(cb){
+  if(window.__MUSEUM){MUS=window.__MUSEUM;cb&&cb();return;}
+  if(cb)musWait.push(cb);if(musState)return;musState=1;
+  const s=document.createElement('script');s.src='museums.js';s.async=true;
+  s.onload=()=>{MUS=window.__MUSEUM;musState=2;musWait.splice(0).forEach(f=>{try{f();}catch(e){}});};s.onerror=()=>{musState=3;};
+  document.head.appendChild(s);
+}
+var musWait=[];
+const TASTE_KINDS=[['museum','🎨 美術館・博物館'],['tour','⛩ 寺社・名所'],['park','🌳 公園・庭園'],['stage','🎭 劇場・ホール'],['bath','♨ 銭湯・温泉']];
+const KTREE={
+  tour:[{id:'tour',name:'寺社・名所',desc:'お寺・神社・史跡など',kids:[
+    {id:'t-shrine',name:'神社',q:'神社をめぐりたい',re:/神社|大社|稲荷|天満宮|八幡|神宮|氷川|天神|明神/},
+    {id:'t-jodo',name:'浄土宗・浄土真宗',q:'念仏の教えのお寺が気になる',dre:/浄土宗|浄土真宗|真宗/},
+    {id:'t-zen',name:'禅宗(曹洞・臨済・黄檗)',q:'禅寺の静けさが好き',dre:/曹洞宗|臨済宗|黄檗宗|禅/},
+    {id:'t-nichi',name:'日蓮宗',q:'日蓮宗のお寺をめぐりたい',dre:/日蓮宗/},
+    {id:'t-mitsu',name:'真言宗・天台宗',q:'密教系の古い寺院が好き',dre:/真言宗|天台宗/},
+    {id:'t-temple',name:'お寺(その他)',q:'お寺や仏像が好き',re:/寺|院|堂|大師|観音|不動|地蔵/},
+    {id:'t-site',name:'史跡・塔・名所',q:'史跡や街のシンボルを見たい',re:/跡|塔|門|城|橋|碑|墓|塚|タワー|ツリー|庭/}]}],
+  park:[{id:'park',name:'公園・庭園',desc:'緑や水辺で、ひと息つく場所',kids:[
+    {id:'p-garden',name:'庭園・日本庭園',q:'手入れされた庭園をゆっくり歩きたい',re:/庭園|御苑|名園|苑|庭/},
+    {id:'p-park',name:'公園',q:'広い公園でのんびりしたい',re:/公園/},
+    {id:'p-water',name:'水辺・池・運河',q:'水辺の景色が好き',re:/池|川|運河|海|湖|ふ頭|埠頭|ベイ|水/},
+    {id:'p-green',name:'緑地・広場・森',q:'木陰や広場で過ごしたい',re:/緑地|広場|森|林|緑道|遊歩道|霊園/}]}],
+  stage:[{id:'stage',name:'劇場・ホール',desc:'舞台・音楽・映画を楽しむ場所',kids:[
+    {id:'s-play',name:'演劇・ミュージカル',q:'演劇やミュージカルを観たい',re:/劇場|座|シアター|演劇|劇団|スタジオ/},
+    {id:'s-music',name:'音楽ホール・オペラ',q:'生の音楽を聴きたい',re:/ホール|音楽堂|オペラ|フォーラム|サントリー|オーケストラ/},
+    {id:'s-yose',name:'寄席・演芸・能・歌舞伎',q:'落語や伝統芸能を楽しみたい',re:/寄席|演芸|亭|落語|能楽|歌舞伎|文楽|能/},
+    {id:'s-cinema',name:'映画館',q:'映画館で映画を観たい',re:/シネマ|映画|シネ|ミニシアター|TOHO|ユナイテッド/}]}],
+  bath:[{id:'bath',name:'銭湯・温泉',desc:'湯につかって、ゆっくりする場所',kids:[
+    {id:'b-sento',name:'昔ながらの銭湯',q:'街の銭湯でさっぱりしたい',re:/湯$|の湯|浴場|銭湯|湯屋|温泉浴場/},
+    {id:'b-onsen',name:'温泉',q:'温泉(天然)に入りたい',re:/温泉|天然/},
+    {id:'b-spa',name:'スパ・サウナ・スーパー銭湯',q:'サウナや大きなお風呂を楽しみたい',re:/スパ|サウナ|スーパー銭湯|ラクーア|ランド|極楽湯|大江戸|健康/}]}]
+};
+let tasteKind='museum',tasteShown=12,tasteItemsCache={};
+const tasteLayer=L.layerGroup().addTo(map);
+function nfk(s){return String(s).normalize('NFKC');}
+function tasteData(kind){
+  if(tasteItemsCache[kind])return tasteItemsCache[kind];
+  let tree=[],items=[];
+  if(kind==='museum'){
+    if(!MUS)return null;
+    tree=MUS.tree;const seen=new Map();
+    Object.entries(MUS.items).forEach(([k,v])=>{
+      const dk=nfk(v.n).replace(/\s/g,'')+'|'+v.lat.toFixed(3)+'|'+v.lng.toFixed(3);
+      const ex=seen.get(dk);
+      const rec={key:k,n:v.n,lat:v.lat,lng:v.lng,l:v.l,t:v.t,dkey:v.t==='s'?{kind:'s',key:k.slice(2)}:{kind:'f',key:k.slice(2)}};
+      if(ex){ex.alt=ex.alt||[];ex.alt.push(rec);}else{seen.set(dk,rec);items.push(rec);}
+    });
+  }else{
+    if(!SPOTS)return null;
+    tree=KTREE[kind]||[];const leaves=tree.flatMap(g=>g.kids);
+    SPOTS.forEach(p=>{
+      if(p.c!==kind)return;
+      const sk=Math.round(p.lat*1e5)+'_'+Math.round(p.lng*1e5),d=window.__DESC&&window.__DESC.s&&window.__DESC.s[sk],txt=nfk(p.n),dtxt=d?nfk(d[0]):'';
+      const l=leaves.filter(x=>(x.re&&x.re.test(txt))||(x.dre&&(x.dre.test(dtxt)||x.dre.test(txt)))).map(x=>x.id);
+      if(l.length)items.push({key:'s:'+sk,n:p.n,lat:p.lat,lng:p.lng,l:l.slice(0,3),t:'s',dkey:{kind:'s',key:sk}});
+    });
+  }
+  return tasteItemsCache[kind]={tree,items};
+}
+function tasteSel(kind){S.ui.taste=S.ui.taste||{};return new Set(S.ui.taste[kind]||[]);}
+function tasteDist(it){const c=map.getCenter();return L.latLng(it.lat,it.lng).distanceTo(c);}
+function tasteHTML(){
+  const D=tasteData(tasteKind),sel=tasteSel(tasteKind);
+  let h='<div class="tasteh"><h2>好みから選ぶ</h2><button class="back" data-t="close">閉じる</button></div>'+
+    '<div class="chips tkinds">'+TASTE_KINDS.map(([k,n])=>'<button class="chip" data-tk="'+k+'" aria-pressed="'+(k===tasteKind)+'">'+n+'</button>').join('')+'</div>';
+  if(!D){h+='<p class="qs">'+((tasteKind==='museum'&&musState===3)?'データを読み込めませんでした。':'データを読み込んでいます…')+'</p>';return h;}
+  const cnt={};D.items.forEach(it=>it.l.forEach(l=>cnt[l]=(cnt[l]||0)+1));
+  h+='<p class="qs">好きなジャンルを選んでください(いくつでも)。選んだ好みに合う場所を、近い順に並べます。</p>';
+  D.tree.forEach(g=>{
+    h+='<div class="tgroup"><div class="tgh"><b>'+esc(g.name)+'</b><small>'+esc(g.desc||'')+'</small></div><div class="tleaves">'+
+      g.kids.map(k=>'<button class="tleaf" data-tl="'+k.id+'" aria-pressed="'+sel.has(k.id)+'"><span class="tn">'+esc(k.name)+'</span><small>'+(cnt[k.id]||0)+'</small></button>').join('')+'</div>';
+    const on=g.kids.filter(k=>sel.has(k.id));
+    if(on.length)h+='<ul class="tq">'+on.map(k=>'<li><b>'+esc(k.name)+'</b>　'+esc(k.desc||k.q||'')+'</li>').join('')+'</ul>';
+    h+='</div>';
+  });
+  if(!sel.size){h+='<p class="qs" style="margin-top:12px">ジャンルを選ぶと、おすすめが出ます。</p>';return h;}
+  const sc=it=>it.l.filter(l=>sel.has(l)).length;
+  const res=D.items.filter(it=>sc(it)>0).map(it=>({it,s:sc(it),d:tasteDist(it)})).sort((a,b)=>b.s-a.s||a.d-b.d);
+  const name={};D.tree.forEach(g=>g.kids.forEach(k=>name[k.id]=k.name));
+  h+='<div class="tres"><div class="tgh"><b>おすすめ(近い順)</b><small>'+res.length+'件</small></div>';
+  res.slice(0,tasteShown).forEach(({it,s,d},i)=>{
+    const dd=d>=1000?(d/1000).toFixed(1)+' km':Math.round(d/10)*10+' m';
+    const de=window.__DESC&&window.__DESC[it.dkey.kind]&&window.__DESC[it.dkey.kind][it.dkey.key];
+    h+='<div class="tcard"><div class="tc1"><b>'+esc(it.n)+'</b><span class="tdist">'+dd+'</span></div>'+
+      '<div class="tc2">'+it.l.map(l=>'<span class="ttag'+(sel.has(l)?' on':'')+'">'+esc(name[l]||'')+'</span>').join('')+(s>1?'<span class="tmatch">好みに '+s+' つ合う</span>':'')+'</div>'+
+      (de&&de[0]&&!/駅の近くにある/.test(de[0])?'<p class="tdesc">'+esc(de[0])+'</p>':'')+
+      '<div class="tc3"><button class="chip" data-tmap="'+i+'">地図で見る</button></div></div>';
+  });
+  if(res.length>tasteShown)h+='<button class="ghost" data-t="more">もっと見る</button>';
+  h+='<button class="ghost" data-t="showall">この'+res.length+'件を、地図にまとめて表示</button><button class="ghost" data-t="clearmap">地図の表示を消す</button></div>';
+  tasteHTML.res=res.map(x=>x.it);
+  return h;
+}
+function tasteRender(){const w=document.getElementById('taste');if(!w)return;const sc=w.querySelector('.tastebx').scrollTop;w.querySelector('.tastebx').innerHTML=tasteHTML();w.querySelector('.tastebx').scrollTop=sc;}
+function openTaste(kind){
+  if(kind)tasteKind=kind;
+  if(document.getElementById('taste')){tasteRender();return;}
+  const w=document.createElement('div');w.id='taste';w.className='askbk';w.innerHTML='<div class="askbx tastebx" role="dialog" aria-modal="true" aria-label="好みから選ぶ"></div>';
+  document.body.appendChild(w);L.DomEvent.disableClickPropagation(w);
+  w.addEventListener('click',e=>{
+    if(e.target===w){w.remove();return;}
+    const a=e.target.closest&&e.target.closest('[data-t],[data-tk],[data-tl],[data-tmap]');if(!a)return;
+    if(a.dataset.tk){tasteKind=a.dataset.tk;tasteShown=12;loadForKind();tasteRender();return;}
+    if(a.dataset.tl){const s=tasteSel(tasteKind);s.has(a.dataset.tl)?s.delete(a.dataset.tl):s.add(a.dataset.tl);S.ui.taste[tasteKind]=[...s];save();tasteShown=12;tasteRender();return;}
+    if(a.dataset.tmap!==undefined){const it=tasteHTML.res&&tasteHTML.res[+a.dataset.tmap];if(it){w.remove();tasteFocus(it);}return;}
+    const k=a.dataset.t;
+    if(k==='close')w.remove();
+    else if(k==='more'){tasteShown+=12;tasteRender();}
+    else if(k==='showall'){tasteShowAll();w.remove();}
+    else if(k==='clearmap'){tasteLayer.clearLayers();toast('地図の表示を消しました');}
+  });
+  loadForKind();tasteRender();
+}
+function loadForKind(){
+  if(tasteKind==='museum')loadMuseum(()=>{tasteItemsCache.museum=null;tasteRender();});
+  else{
+    loadSpots();loadDesc(()=>{tasteItemsCache={};tasteRender();});
+    const t0=Date.now(),iv=setInterval(()=>{if(SPOTS||Date.now()-t0>25000){clearInterval(iv);tasteItemsCache[tasteKind]=null;tasteRender();}},400);
+  }
+}
+function tastePin(it,big){
+  const m=L.circleMarker([it.lat,it.lng],{radius:big?11:8,color:'#fff',weight:2.5,fillColor:'#1A73E8',fillOpacity:1,pane:'markerPane'});
+  m.bindTooltip(it.n,{direction:'top',offset:[0,-8],permanent:big});m.on('click',()=>tasteFocus(it,true));return m;
+}
+function tasteFocus(it,noFly){
+  tasteLayer.clearLayers();const m=tastePin(it,true).addTo(tasteLayer);
+  const go=()=>{
+    const de=window.__DESC&&window.__DESC[it.dkey.kind]&&window.__DESC[it.dkey.kind][it.dkey.key];
+    const D=tasteData(tasteKind),name={};if(D)D.tree.forEach(g=>g.kids.forEach(k=>name[k.id]=k.name));
+    let tel='';if(it.dkey.kind==='s'){tel=(window.__SPOTTEL&&window.__SPOTTEL[it.dkey.key])||'';}
+    else if(typeof FAC!=='undefined'&&FAC){const r=FAC.find(x=>(x[1]+'|'+x[2]+'|'+x[3])===it.dkey.key);if(r)tel=r[6]||'';}
+    const html='<div class="spotpop"><b>'+esc(it.n)+'</b><small>'+it.l.map(l=>esc(name[l]||'')).filter(Boolean).join('・')+'</small>'+
+      (de&&de[0]?'<p class="fdesc">'+esc(de[0])+'</p><p class="qs fsrc">出典: '+esc(de[1]||'')+'</p>':'')+
+      telHTML(tel,it.n,'', 'taste:'+it.key)+'</div>';
+    L.popup({className:'spot-popup',offset:[0,-12],maxWidth:300}).setLatLng([it.lat,it.lng]).setContent(html).openOn(map);
+  };
+  if(noFly){go();return;}
+  const z=Math.max(map.getZoom(),15.5);window.__autoZ=true;
+  map.flyTo([it.lat,it.lng],z,{duration:1.2});map.once('moveend',()=>{go();window.__autoZ=false;});
+}
+function tasteShowAll(){
+  tasteLayer.clearLayers();const res=tasteHTML.res||[];if(!res.length)return;
+  const pts=[];res.slice(0,150).forEach(it=>{tastePin(it,false).addTo(tasteLayer);pts.push([it.lat,it.lng]);});
+  try{map.fitBounds(L.latLngBounds(pts).pad(.2),{maxZoom:15,animate:true});}catch(e){}
+  toast(res.length+'件を、青い点で表示しました(点を押すと詳細)');
+}
+// 同じ系統の、近くの館(美術館のポップアップに出す)
+function similarHTML(key){
+  if(!MUS)return '';const it=MUS.items[key];if(!it||!it.l.length)return '';
+  const name={};MUS.tree.forEach(g=>g.kids.forEach(k=>name[k.id]=k.name));
+  const here=L.latLng(it.lat,it.lng),seen=new Set([nfk(it.n)]),sim=[];
+  Object.entries(MUS.items).forEach(([k,v])=>{if(k===key)return;const nn=nfk(v.n);if(seen.has(nn))return;const c=v.l.filter(l=>it.l.includes(l)).length;if(!c)return;seen.add(nn);sim.push({k,v,c,d:here.distanceTo([v.lat,v.lng])});});
+  sim.sort((a,b)=>b.c-a.c||a.d-b.d);
+  const top=sim.slice(0,3);
+  return '<div class="simbx"><div class="qs"><b>系統:</b> '+it.l.map(l=>esc(name[l]||'')).join('・')+'</div>'+
+    (top.length?'<div class="qs"><b>似た館:</b> '+top.map(s=>esc(s.v.n)+'（'+(s.d>=1000?(s.d/1000).toFixed(1)+'km':Math.round(s.d/10)*10+'m')+'）').join('、')+'</div>':'')+
+    '<div class="qs"><a href="#" data-open-taste="museum">好みから美術館を選ぶ</a></div></div>';
+}
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-open-taste]');if(a){e.preventDefault();openTaste(a.dataset.openTaste);}});
+afterBoot(()=>{loadMuseum();},7000);
 
 if(S.ui.spots.mode!=='off')setSpotMode(S.ui.spots.mode);
 
@@ -3568,7 +3763,7 @@ function wirePwa(){const b=body.querySelector('#pwa-add');if(b)b.onclick=async()
 
 // テーマ変更に追従
 const mq=matchMedia('(prefers-color-scheme: dark)');
-function retheme(){_cssMemo.clear();tileCache.clear();for(const k in dStyleMemo)delete dStyleMemo[k];if(dotLayer){map.removeLayer(dotLayer);dotLayer=null;}recKey='';refreshRecs();updateDetail();if(map.hasLayer(spotLayer))spotLayer.redraw();rails.jy.setStyle({color:css('--jy')});rails.jc.setStyle({color:css('--jc')});muniLayer.setStyle(f=>({color:css('--border')}));styleMarkers();refreshWalkAll();}
+function retheme(){styleMarkers._key=null;_cssMemo.clear();tileCache.clear();for(const k in dStyleMemo)delete dStyleMemo[k];if(dotLayer){map.removeLayer(dotLayer);dotLayer=null;}recKey='';refreshRecs();updateDetail();if(map.hasLayer(spotLayer))spotLayer.redraw();rails.jy.setStyle({color:css('--jy')});rails.jc.setStyle({color:css('--jc')});muniLayer.setStyle(f=>({color:css('--border')}));styleMarkers();refreshWalkAll();}
 mq.addEventListener&&mq.addEventListener('change',retheme);
 new MutationObserver(retheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
