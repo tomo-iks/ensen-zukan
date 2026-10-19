@@ -698,6 +698,42 @@ body.flying #zoomind{opacity:.9}
 .tplaces .tcard{border:1px solid var(--rule);border-radius:var(--r);padding:8px 12px;background:var(--panel)}
 @keyframes tgrow{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 
+/* ===== 行き先の樹形図: 丸い泡のボタンをやめ、Googleマップのリストのような行にする(押す範囲は行全体) ===== */
+#tree.askbk{align-items:flex-end;padding:0}
+#tree .treebx{max-width:560px;max-height:88vh;padding:0;border-radius:var(--r-l) var(--r-l) 0 0;display:flex;flex-direction:column;overflow-y:auto}
+@media (min-width:860px){#tree.askbk{align-items:center;padding:16px}#tree .treebx{max-width:440px;border-radius:var(--r-l)}}
+#tree .tasteh{position:sticky;top:0;z-index:2;margin:0;padding:14px 8px 10px 18px;background:var(--panel);border-bottom:1px solid var(--rule)}
+#tree .tasteh h2{font-size:18px;font-weight:700}
+#tree .tclose{width:44px;height:44px;border:0;border-radius:50%;background:none;color:var(--ink2);font-size:24px;line-height:1}
+#tree .tclose:hover{background:var(--chip)}
+#tree .tbody{padding:4px 12px 12px}
+#tree .tload{margin:8px 6px;font-size:12px;color:var(--ink2)}
+#tree .ttree li,#tree .tkids li{padding:0 0 0 14px}
+#tree .ttree>.troot{padding-left:0}
+#tree .tkids{margin-left:6px;animation:none}
+#tree .tkids li::before{border-left:1px solid var(--rule);left:0}
+#tree .tkids li::after{top:24px;left:0;width:12px;border-top:1px solid var(--rule)}
+#tree .tkids>li:last-child::before{height:24px}
+#tree .tn{display:flex;width:100%;justify-content:flex-start;gap:6px;min-height:48px;padding:8px 10px;border:0;border-radius:var(--r);background:none;color:var(--ink);font-size:15px;font-weight:500}
+#tree .tn:hover{background:var(--chip)}
+#tree .tn small{margin-left:auto;font-size:13px;color:var(--ink2)}
+#tree .tn .chev{margin-left:4px;font-size:18px;line-height:1}
+#tree .tn.root{background:none;color:var(--ink2);font-weight:500;font-size:13px;min-height:36px}
+#tree .tn.root.sel{background:none;color:var(--accent);font-weight:700}
+#tree .tn.sel{background:var(--chip);color:var(--ink);font-weight:700}
+#tree .tn.sel .chev{color:var(--accent)}
+#tree .tn.sel{scroll-margin-top:64px}
+#tree .tplaces .tcard{display:block;border:0;border-bottom:1px solid var(--rule);border-radius:0;padding:10px 10px;background:none;cursor:pointer}
+#tree .tplaces .tcard:hover{background:var(--chip)}
+#tree .tplaces li:last-of-type .tcard{border-bottom:0}
+#tree .tc1 b{font-size:15px;font-weight:600}
+#tree .tc2{margin:2px 0 0;gap:4px;color:var(--ink2);font-size:12.5px}
+#tree .tc2 span+span::before{content:"・"}
+#tree .tc2 .ttag{padding:0;border-radius:0;background:none;font-size:12.5px}
+#tree .tmore{display:block;width:100%;min-height:44px;margin:4px 0;border:0;background:none;color:var(--accent);font-size:14px;font-weight:700;text-align:left;padding:0 10px}
+#tree .tmapall{position:sticky;bottom:0;z-index:2;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:var(--panel);border-top:1px solid var(--rule)}
+#tree .tmapall button{width:100%;min-height:48px;border:0;border-radius:var(--r);background:var(--accent);color:var(--panel);font-size:15px;font-weight:700}
+
 .tasteh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.tasteh h2{margin:0;font-size:20px}
 .tkinds{flex-wrap:nowrap;overflow-x:auto;margin:0 -4px 10px;padding:2px 4px;scrollbar-width:none}.tkinds .chip{flex:none}
 .tgroup{margin:12px 0}.tgh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 6px}.tgh small{color:var(--ink2);font-size:12px}
@@ -751,14 +787,11 @@ body.maponly #dotkind{display:block}
 .stlist button:hover{background:var(--chip)}
 
 /* ===== v9: 配色の見直し（長く見ても疲れにくい明るさ、区市3段階、文字のコントラスト）とお散歩 ===== */
-:root{--sea:#E3E5E1;--land:#F7F6F2;--land23:#FBFAF7;--border:#B9C0BB;--muni-on:#E6EFE4;--muni-edge:#94A39A;--muni-sel:#CFE2F3;
-  --park:#C9E3BE;--water:#A9D0E8;--road:#FFFFFF;--road1:#F4DA97;--bldg:#CBC4B6;--bldgline:#9E978A;
+:root{/* 地図の色(--sea〜--bldgline)は、後ろの「v26 Googleマップ」の章で定義する */
   --ink:#1F2629;--ink2:#53606A;--rule:#DADFE2;--chip:#F1F3F4;--panel:#FFFFFF;--accent:#2860A8;--walk:#8A3FC4;--ok:#23804C;--want:#B9790D}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--sea:#121619;--land:#1B2125;--land23:#1E252A;--border:#3A454A;--muni-on:#1E2D2A;--muni-edge:#4C5E58;--muni-sel:#21405A;
-  --park:#1E3828;--water:#1B394F;--road:#3A454B;--road1:#6A5A30;--bldg:#3B484F;--bldgline:#10171A;
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --ink:#E6ECEE;--ink2:#A6B2B7;--rule:#323C41;--chip:#262E32;--panel:#1B2125;--accent:#8DB8F2;--walk:#C792F2;--jy:#7CC352;--jc:#F07C4E;--ok:#62C38A;--want:#E9B44A}}
-:root[data-theme="dark"]{--sea:#121619;--land:#1B2125;--land23:#1E252A;--border:#3A454A;--muni-on:#1E2D2A;--muni-edge:#4C5E58;--muni-sel:#21405A;
-  --park:#1E3828;--water:#1B394F;--road:#3A454B;--road1:#6A5A30;--bldg:#3B484F;--bldgline:#10171A;
+:root[data-theme="dark"]{
   --ink:#E6ECEE;--ink2:#A6B2B7;--rule:#323C41;--chip:#262E32;--panel:#1B2125;--accent:#8DB8F2;--walk:#C792F2;--jy:#7CC352;--jc:#F07C4E;--ok:#62C38A;--want:#E9B44A}
 .leaflet-tooltip.muni-label{color:var(--ink2);opacity:.9}
 #walkbar{position:fixed;z-index:650;left:12px;top:calc(env(safe-area-inset-top,0px) + 112px)}
@@ -1288,7 +1321,7 @@ const _ttSetContent=L.Tooltip.prototype.setContent;L.Tooltip.prototype.setConten
 const __bh=/^#t(\d+)$/.exec(location.hash),__bs=__bh&&STATIONS[+__bh[1]];  // 再読み込み時は、最初から その街の位置で始める（全体地図から飛ばない）
 const __H=(document.getElementById('map')&&document.getElementById('map').clientHeight)||innerHeight;
 const __C=__bs?__bs.ll:L.latLng(window.__V.lat,window.__V.lng);   // 巣鴨(右上)と目白(左下)が画面に収まる位置
-const map=L.map('map',{trackResize:false,zoomControl:false,attributionControl:true,minZoom:9,maxZoom:17,zoomSnap:.5}).setView(__C,__bs?16:window.__V.Z);
+const map=L.map('map',{trackResize:false,zoomControl:false,attributionControl:true,minZoom:9,maxZoom:17,zoomSnap:.5,wheelPxPerZoomLevel:120,inertiaDeceleration:2400}).setView(__C,__bs?16:window.__V.Z);
 L.control.zoom({position:'topright'}).addTo(map);
 map.attributionControl.setPrefix(false);
 map.attributionControl.addAttribution('境界：国土数値情報（行政区域）を加工');
@@ -1919,7 +1952,7 @@ function dStyles(z){if(dStyleMemo[z])return dStyleMemo[z];return dStyleMemo[z]=d
 function dStyles0(z){
   // 道の太さは、拡大に合わせて変える(拡大13で細く、17で太く。以前は全ての拡大で同じ太さで、広域で太すぎた)
   const W=(a,b)=>a*Math.pow(b/a,Math.max(0,Math.min(1.3,(z-13)/4)));
-  const w1=W(2.2,9),w2=W(1.4,6.5),w3=W(.9,4),wl=W(1.2,4.5),b=z>=17;
+  const w1=W(2.4,11),w2=W(1.6,8),w3=W(1,5.5),wl=W(1.2,4.5),b=z>=17;   // Googleマップに合わせ、拡大17で 幹線11 / 主要8 / 細い道5.5
   return [['g','fill',{f:css('--park')}],['w','fill',{f:css('--water')}],['wl','line',{c:css('--water'),lw:wl}],
     ['r2','line',{c:css('--roadline'),lw:w2+1.1}],['r1','line',{c:css('--road1line'),lw:w1+1.3}],['r3','line',{c:css('--roadline'),lw:w3+.9}],
     ['r3','line',{c:css('--road'),lw:w3}],['r2','line',{c:css('--road'),lw:w2}],['r1','line',{c:css('--road1'),lw:w1}],
@@ -2069,6 +2102,7 @@ function renderTown(){
   }else if(v.mode==='rec'){renderRecDetail();
   }else if(v.mode==='shop'){renderShopDetail();
   }else if(v.mode==='play'){renderPlayDetail();
+  }else if(v.mode==='mus'){renderMuseumDetail();
   }else if(v.mode==='pick'){
     body.innerHTML=`${head}<div class="pickmsg"><b>地図をタップして、ピンを立てる場所を選んでください。</b><br><span class="qs">あとからドラッグで位置を調整できます。</span></div>
     <button class="ghost" id="pickcancel">やめる</button>`;
@@ -2600,6 +2634,51 @@ function renderPlayDetail(){
     if(saved){townTab='pin';pinView={mode:'detail',id:saved.id};render();body.scrollTop=0;return;}
     e.currentTarget.disabled=true;
     try{await savePin(Object.assign(pmk(),{id:null,keep:[],add:[]}));townTab='pin';}
+    catch(err){toast('保存できませんでした');e.currentTarget.disabled=false;}
+  };
+}
+
+// ---------- 美術館・博物館の説明: 遊び場と同じ、サイドパネルの詳細で見せる ----------
+// d={kind:'f'|'s'(説明データの種別), key, n, lat, lng, tel, url}。ピン・スポット・好みの樹形図のどこから開いても同じ画面にする
+function playForName(n){const base=x=>x.replace(/[\s（(].*$/,'').replace(/\s/g,'');return PLAYS.find(x=>base(x.n)&&(base(x.n)===base(n)||x.n.includes(n)||n.includes(base(x.n))&&base(x.n).length>=3));}
+function openMuseum(d){
+  const pl=playForName(d.n);if(pl){openPlay(pl.id);return;}   // 遊び場として収録済みなら、その詳細を出す
+  const st=nearStation(d.lat,d.lng);
+  setMapOnly(false);panel.classList.remove('collapsed');
+  if(town!==st)enterTown(st,null,true);
+  townTab='play';pinView={mode:'mus',d};render();body.scrollTop=0;
+  focusOn([d.lat,d.lng],Math.max(map.getZoom(),16));
+  if(!window.__DESC)loadDesc(()=>{if(pinView&&pinView.mode==='mus'&&pinView.d===d)render();});
+  if(!MUS)loadMuseum(()=>{if(pinView&&pinView.mode==='mus'&&pinView.d===d)render();});
+}
+function renderMuseumDetail(){
+  const d=pinView.d,k=d.kind+':'+d.key,id='m:'+d.kind+':'+d.key,st=nearStation(d.lat,d.lng);
+  const saved=PINS.find(x=>x.from===id);
+  const gmap='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(d.n+' '+d.lat+','+d.lng);
+  const de=window.__DESC&&window.__DESC[d.kind]&&window.__DESC[d.kind][d.key],h=window.__HOURS&&window.__HOURS[d.kind]&&window.__HOURS[d.kind][d.key];
+  const it=MUS&&MUS.items[k],name={};if(MUS)MUS.tree.forEach(g=>g.kids.forEach(x=>name[x.id]=x.name));
+  const labels=it?it.l.map(l=>name[l]).filter(Boolean):[];
+  body.innerHTML=`<button class="back" id="md-back">← 街の一覧</button>
+  <div class="meta" style="margin-top:8px"><span class="chip">美術館・博物館</span><span class="chip">${esc(st)}</span></div>
+  <h2 class="pin-title">${esc(d.n)}</h2>
+  <p class="qs" style="margin:-4px 0 10px">${labels.length?esc(labels.join('・'))+'　｜　':''}${esc(st)}駅の近く</p>
+  ${telHTML(d.tel,d.n,st+'駅',d.kind==='f'?'fac:'+d.key:'spot:'+d.key)}
+  ${spotPhotosHTML(id)}
+  <div class="ptable" style="margin-top:16px"><div><b>料金</b><span style="font-size:14px;font-family:var(--f-body)">未確認</span></div><div><b>営業時間</b><span style="font-size:14px;font-family:var(--f-body)">${esc(h&&h[0]||'未確認')}</span>${h&&h[1]?`<small>${esc(h[1])}</small>`:''}</div></div>
+  ${de&&de[0]?`<div class="sec"><h3>どんな場所か</h3><p class="sdesc">${esc(de[0])}</p><p class="qs" style="margin:4px 0 0">出典: ${de[2]?`<a href="${esc(de[2])}" target="_blank" rel="noopener">${esc(de[1]||'')}</a>`:esc(de[1]||'')}${/^Wikipedia/.test(de[1]||'')?'（CC BY-SA）':''}</p></div>`:''}
+  ${similarHTML(k)}
+  <div class="sec"><h3>出典・リンク</h3><ul class="links">${d.url?`<li><a href="${esc(d.url)}" target="_blank" rel="noopener">公式サイト</a></li>`:''}<li><a href="${gmap}" target="_blank" rel="noopener">Googleマップで場所を確認</a></li></ul></div>
+  <div class="btns markbtns"><button class="tog" id="sd-share">共有</button></div>
+  <button class="primary" id="md-save">${saved?'保存したピンを開く':'自分のピンに保存（写真・メモを残せる）'}</button>
+  <p class="disclaim">営業時間は OpenStreetMap(© OpenStreetMap contributors)による情報で、変わることがあります。出かける前に公式サイトで確認してください。</p>`;
+  const mk=()=>({lat:d.lat,lng:d.lng,title:d.n,kind:'hist',comment:'美術館・博物館',date:'',town:st,from:id});
+  wireSpotPhotos({id,n:d.n},mk);
+  body.querySelector('#sd-share').onclick=()=>share(d.n,`${d.n}（${st}・美術館・博物館）`,PAGES_URL,d.url||gmap);
+  body.querySelector('#md-back').onclick=()=>{pinView={mode:'list'};townTab='play';render();};
+  body.querySelector('#md-save').onclick=async e=>{
+    if(saved){townTab='pin';pinView={mode:'detail',id:saved.id};render();body.scrollTop=0;return;}
+    e.currentTarget.disabled=true;
+    try{await savePin(Object.assign(mk(),{id:null,keep:[],add:[]}));townTab='pin';}
     catch(err){toast('保存できませんでした');e.currentTarget.disabled=false;}
   };
 }
@@ -3179,6 +3258,7 @@ function refreshFac(){
   });
 }
 function facPopup(i){
+  if(FAC[i][0]==='mus'){const r=FAC[i];openMuseum({kind:'f',key:r[1]+'|'+r[2]+'|'+r[3],n:r[1],lat:r[2],lng:r[3],tel:r[6]||'',url:r[5]||''});return;}   // 美術館・博物館は、サイドパネルの詳細で見せる
   const f=FAC[i],T=FAC_TYPES[f[0]],tr=window.__FACTOUR&&f[0]==='res'?window.__FACTOUR[f[1]]:null;
   const gm='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(f[1]+' '+f[2]+','+f[3]);
   let h='<div class="spotpop facpop"><b>'+esc(f[1])+'</b><small><i class="fdot f-'+(f[0].indexOf('lib')===0?'lib':f[0])+'"></i>'+T.name+'　'+esc(f[4])+'駅の近く</small>';
@@ -3294,6 +3374,7 @@ map.on('click',e=>{
   if(!best&&z>=SPOT_Z){const hits=spotsIn(e.latlng.lat,e.latlng.lng,e.latlng.lat,e.latlng.lng).filter(p=>on.has(p.c)&&p.ring&&inRing(p,e.latlng.lat,e.latlng.lng));
     hits.sort((a,b)=>(a.n2-a.s)*(a.e-a.w)-(b.n2-b.s)*(b.e-b.w));best=hits[0];}
   if(!best)return;
+  if(best.c==='museum'){const sk=Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5);openMuseum({kind:'s',key:sk,n:best.n,lat:best.lat,lng:best.lng,tel:(window.__SPOTTEL&&window.__SPOTTEL[sk])||'',url:''});return;}   // 博物館・美術館は、サイドパネルの詳細で見せる
   const base=s=>s.replace(/[\s（(].*$/,'').replace(/\s/g,''),pl=PLAYS.find(x=>base(x.n)&&(base(x.n)===base(best.n)||x.n.includes(best.n)||best.n.includes(base(x.n))&&base(x.n).length>=3));
   const stel=window.__SPOTTEL&&window.__SPOTTEL[Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5)];
   const html=`<div class="spotpop"><b>${esc(best.n)}</b><small><i style="background:var(--sp-${best.c})"></i>${SPOTNAME[best.c]}</small>${descHTML('s',Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5))}${best.c==='museum'&&typeof similarHTML==='function'?similarHTML('s:'+Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5)):''}${telHTML(stel||(pl&&pl.tel),best.n,'','spot:'+Math.round(best.lat*1e5)+'_'+Math.round(best.lng*1e5))}${pl?`<button class="ghost" data-sp-play="${pl.id}">図鑑の「遊び場」で見る</button>`:''}</div>`;
@@ -3497,6 +3578,11 @@ function tastePin(it,big){
 }
 function tasteFocus(it,noFly){
   tasteLayer.clearLayers();const m=tastePin(it,true).addTo(tasteLayer);
+  if(MUS&&MUS.items[it.key]){   // 美術館・博物館は、サイドパネルの詳細で見せる
+    let tel='',url='';if(it.dkey.kind==='s')tel=(window.__SPOTTEL&&window.__SPOTTEL[it.dkey.key])||'';
+    else if(typeof FAC!=='undefined'&&FAC){const r=FAC.find(x=>(x[1]+'|'+x[2]+'|'+x[3])===it.dkey.key);if(r){tel=r[6]||'';url=r[5]||'';}}
+    openMuseum({kind:it.dkey.kind,key:it.dkey.key,n:it.n,lat:it.lat,lng:it.lng,tel,url});return;
+  }
   const go=()=>{
     const de=window.__DESC&&window.__DESC[it.dkey.kind]&&window.__DESC[it.dkey.kind][it.dkey.key];
     const D=tasteData(tasteKind),name={};if(D)D.tree.forEach(g=>g.kids.forEach(k=>name[k.id]=k.name));
@@ -3619,22 +3705,24 @@ function treeNodeAt(path){let nodes=treeRoots(),n=null;const trail=[];
 function treeDist(it){return L.latLng(it.lat,it.lng).distanceTo(map.getCenter());}
 function treeHTML(){
   const roots=treeRoots(),path=treeState.path;
-  const loading=(!SPOTS||!FAC||!MUS)?'<p class="qs">一部のデータを読み込んでいます。少しお待ちください…</p>':'';
-  let h='<div class="tasteh"><h2>行きたい場所をえらぶ</h2><button class="back" data-tr="close">閉じる</button></div>';
-  h+='<p class="qs">枝を押すほど、詳しい枝に分かれます。最後は、近い順の場所です。</p>'+loading;
+  const loading=(!SPOTS||!FAC||!MUS)?'<p class="tload">データを読み込み中です…</p>':'';
+  let h='<div class="tasteh"><h2>行き先を探す</h2><button class="tclose" data-tr="close" aria-label="閉じる">×</button></div><div class="tbody">';
+  h+=loading;
   // パンくず(幹)
-  h+='<ul class="ttree"><li class="troot"><button class="tn root'+(path.length?'':' sel')+'" data-tr="root">📍 行きたい場所</button>';
+  h+='<ul class="ttree"><li class="troot"><button class="tn root'+(path.length?'':' sel')+'" data-tr="root">すべて</button>';
   const render=(nodes,depth)=>{
     if(depth<path.length){
       const n=nodes[path[depth]];if(!n)return '';
       const kids=n.kids?n.kids():null;
-      return '<ul class="tkids"><li><button class="tn sel" data-tr="up'+depth+'">'+(n.icon?n.icon+' ':'')+esc(n.label)+'<small>'+n.count+'</small><span class="chev">▾</span></button>'+
+      return '<ul class="tkids"><li><button class="tn sel" data-tr="up'+depth+'">'+esc(n.label)+'<small>'+n.count+'</small><span class="chev">▾</span></button>'+
         (kids?render(kids,depth+1):(n.places?placesHTML(n):''))+'</li></ul>';
     }
-    return '<ul class="tkids">'+nodes.map((n,i)=>'<li><button class="tn" data-tr="go'+i+'">'+(n.icon?n.icon+' ':'')+esc(n.label)+'<small>'+n.count+'</small><span class="chev">›</span></button></li>').join('')+'</ul>';
+    return '<ul class="tkids">'+nodes.map((n,i)=>'<li><button class="tn" data-tr="go'+i+'">'+esc(n.label)+'<small>'+n.count+'</small><span class="chev">›</span></button></li>').join('')+'</ul>';
   };
   h+=render(roots,0);
-  h+='</li></ul>';
+  h+='</li></ul></div>';
+  const cur=treeNodeAt(path).n,all=cur&&!cur.kids&&cur.places?cur.places().length:0;
+  if(all)h+='<div class="tmapall"><button data-tr="mapall">この'+all+'件を地図に表示</button></div>';
   return h;
 }
 function placesHTML(n){
@@ -3643,12 +3731,11 @@ function placesHTML(n){
   let h='<ul class="tkids tplaces">';
   list.slice(0,treeState.shown).forEach(({it,d},i)=>{
     const dd=d>=1000?(d/1000).toFixed(1)+' km':Math.round(d/10)*10+' m';
-    h+='<li><div class="tcard"><div class="tc1"><b>'+esc(it.n)+'</b><span class="tdist">'+dd+'</span></div>'+
-      (it.st?'<div class="tc2"><span class="ttag">'+esc(it.st)+'</span>'+(it.tag?'<span class="ttag">'+esc(it.tag)+'</span>':'')+'</div>':'')+
-      '<div class="tc3"><button class="chip" data-tr="pl'+i+'">詳細を見る</button></div></div></li>';
+    h+='<li><div class="tcard" role="button" tabindex="0" data-tr="pl'+i+'"><div class="tc1"><b>'+esc(it.n)+'</b><span class="tdist">'+dd+'</span></div>'+
+      (it.st?'<div class="tc2"><span class="ttag">'+esc(it.st)+'</span>'+(it.tag?'<span class="ttag">'+esc(it.tag)+'</span>':'')+'</div>':'')+'</div></li>';
   });
-  if(list.length>treeState.shown)h+='<li><button class="ghost" data-tr="more">もっと見る（残り'+(list.length-treeState.shown)+'件）</button></li>';
-  h+='<li><button class="ghost" data-tr="mapall">この'+list.length+'件を、地図にまとめて表示</button></li></ul>';
+  if(list.length>treeState.shown)h+='<li><button class="tmore" data-tr="more">さらに表示（残り'+(list.length-treeState.shown)+'件）</button></li>';
+  h+='</ul>';
   return h;
 }
 function treeRerender(keepScroll){
@@ -3673,6 +3760,7 @@ function openTree(){
       const b=w.querySelector('.tastebx'),sel=b.querySelectorAll('.tn.sel');const last=sel[sel.length-1];if(last)last.scrollIntoView({block:'start',behavior:'smooth'});return;}
     if(m=/^pl(\d+)$/.exec(k)){const it=treeHTML.list&&treeHTML.list[+m[1]];if(it){w.remove();document.getElementById('taste')&&document.getElementById('taste').remove();try{it.act();}catch(_){}}return;}
   });
+  w.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('.tcard')){e.preventDefault();e.target.click();}});
   // データ(店・遊び場・施設・スポット・美術館・説明)を読み込む。読み込めた順に、枝が増える
   loadFac();loadSpots();loadMuseum(()=>treeRerender(true));loadDesc(()=>treeRerender(true));
   const t0=Date.now(),iv=setInterval(()=>{if(!document.getElementById('tree')||Date.now()-t0>30000){clearInterval(iv);return;}const v=treeVer();if(v!==treeOnce.v){treeOnce.v=v;treeRerender(true);}},1500);
@@ -4047,4 +4135,4 @@ openDB().then(async d=>{idb=d;try{PINS=(await store('all','pins'))||[];}catch(e)
 })();
 </script>
 
-</body></html>
+</body></html>
